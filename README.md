@@ -227,6 +227,7 @@ Content-Type: application/json
 ## 🚀 실행 방법
 
 ### 1. 백엔드 실행
+IDE에서 `AuthApplication.java` 파일을 실행하거나, 다음 명령어를 사용:
 ```bash
 cd backend
 mvn clean install

@@ -20,6 +20,9 @@ public class AuthService {
 
     @Autowired
     private JwtService jwtService;
+    
+    @Autowired
+    private RSAService rsaService;
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
@@ -30,10 +33,20 @@ public class AuthService {
             return new AuthResponse(null, null, "Email already exists");
         }
 
+        String decryptedPassword = request.getPassword();
+        
+        if (request.getEncryptedPassword() != null && !request.getEncryptedPassword().isEmpty()) {
+            try {
+                decryptedPassword = rsaService.decrypt(request.getEncryptedPassword());
+            } catch (Exception e) {
+                return new AuthResponse(null, null, "Failed to decrypt password");
+            }
+        }
+
         User user = new User(
             request.getUsername(),
             request.getEmail(),
-            passwordEncoder.encode(request.getPassword())
+            passwordEncoder.encode(decryptedPassword)
         );
 
         userRepository.save(user);
@@ -46,7 +59,21 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername())
             .orElse(null);
 
-        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (user == null) {
+            return new AuthResponse(null, null, "Invalid credentials");
+        }
+        
+        String decryptedPassword = request.getPassword();
+        
+        if (request.getEncryptedPassword() != null && !request.getEncryptedPassword().isEmpty()) {
+            try {
+                decryptedPassword = rsaService.decrypt(request.getEncryptedPassword());
+            } catch (Exception e) {
+                return new AuthResponse(null, null, "Failed to decrypt password");
+            }
+        }
+
+        if (!passwordEncoder.matches(decryptedPassword, user.getPassword())) {
             return new AuthResponse(null, null, "Invalid credentials");
         }
 

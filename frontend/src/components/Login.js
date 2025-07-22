@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { fetchPublicKey, encryptPassword } from '../utils/rsaEncrypt';
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -18,12 +19,21 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const publicKey = await fetchPublicKey();
+      const encryptedPassword = encryptPassword(formData.password, publicKey);
+      
+      const requestData = {
+        username: formData.username,
+        encryptedPassword: encryptedPassword,
+        password: null
+      };
+
       const response = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(requestData)
       });
 
       const data = await response.json();

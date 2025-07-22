@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSA 암호화 테스트</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.3.2/jsencrypt.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        .error {
+            border-left-color: #f44336;
+            background-color: #ffebee;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            display: inline-block;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .fail {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 RSA 암호화 테스트</h1>
+        
+        <div class="test-section">
+            <h3>1. RSA 공개키 가져오기</h3>
+            <button onclick="fetchPublicKey()">공개키 요청</button>
+            <div id="publicKeyResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. 비밀번호 암호화 테스트</h3>
+            <input type="password" id="testPassword" placeholder="테스트할 비밀번호 입력" value="testpass123">
+            <button onclick="testEncryption()">암호화 테스트</button>
+            <div id="encryptionResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. 회원가입 테스트 (RSA 암호화 사용)</h3>
+            <input type="text" id="regUsername" placeholder="사용자명" value="">
+            <input type="email" id="regEmail" placeholder="이메일" value="">
+            <input type="password" id="regPassword" placeholder="비밀번호" value="testpass123">
+            <button onclick="testRegisterWithRSA()">RSA 암호화로 회원가입</button>
+            <div id="registerResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 로그인 테스트 (RSA 암호화 사용)</h3>
+            <input type="text" id="loginUsername" placeholder="사용자명">
+            <input type="password" id="loginPassword" placeholder="비밀번호" value="testpass123">
+            <button onclick="testLoginWithRSA()">RSA 암호화로 로그인</button>
+            <div id="loginResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let publicKey = null;
+        const baseURL = 'http://localhost:8080/api/auth';
+
+        // 테스트용 사용자명과 이메일 생성
+        document.getElementById('regUsername').value = 'testuser' + Date.now();
+        document.getElementById('regEmail').value = 'test' + Date.now() + '@example.com';
+
+        async function fetchPublicKey() {
+            const resultDiv = document.getElementById('publicKeyResult');
+            try {
+                const response = await fetch(`${baseURL}/public-key`);
+                const data = await response.json();
+                publicKey = data.publicKey;
+                
+                resultDiv.innerHTML = `
+                    <div class="result">
+                        <span class="status success">성공</span>
+                        <p><strong>공개키 수신:</strong></p>
+                        <p>길이: ${publicKey.length} 문자</p>
+                        <p>시작: ${publicKey.substring(0, 50)}...</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <span class="status fail">실패</span>
+                        <p>오류: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function testEncryption() {
+            const password = document.getElementById('testPassword').value;
+            const resultDiv = document.getElementById('encryptionResult');
+            
+            if (!publicKey) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <span class="status fail">실패</span>
+                        <p>먼저 공개키를 가져오세요!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const encrypt = new JSEncrypt();
+                encrypt.setPublicKey(publicKey);
+                const encrypted = encrypt.encrypt(password);
+                
+                resultDiv.innerHTML = `
+                    <div class="result">
+                        <span class="status success">성공</span>
+                        <p><strong>원본 비밀번호:</strong> ${password}</p>
+                        <p><strong>암호화된 비밀번호:</strong></p>
+                        <p>${encrypted}</p>
+                        <p>길이: ${encrypted.length} 문자</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <span class="status fail">실패</span>
+                        <p>암호화 오류: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testRegisterWithRSA() {
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const resultDiv = document.getElementById('registerResult');
+            
+            if (!publicKey) {
+                await fetchPublicKey();
+            }
+
+            try {
+                const encrypt = new JSEncrypt();
+                encrypt.setPublicKey(publicKey);
+                const encryptedPassword = encrypt.encrypt(password);
+                
+                const response = await fetch(`${baseURL}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        email: email,
+                        password: null,
+                        encryptedPassword: encryptedPassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="result">
+                            <span class="status success">성공</span>
+                            <p><strong>회원가입 성공!</strong></p>
+                            <p>사용자명: ${data.username}</p>
+                            <p>메시지: ${data.message}</p>
+                            <p>토큰: ${data.token.substring(0, 30)}...</p>
+                        </div>
+                    `;
+                    // 로그인 테스트를 위해 사용자명 복사
+                    document.getElementById('loginUsername').value = username;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <span class="status fail">실패</span>
+                            <p>오류: ${data.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <span class="status fail">실패</span>
+                        <p>요청 오류: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testLoginWithRSA() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultDiv = document.getElementById('loginResult');
+            
+            if (!publicKey) {
+                await fetchPublicKey();
+            }
+
+            try {
+                const encrypt = new JSEncrypt();
+                encrypt.setPublicKey(publicKey);
+                const encryptedPassword = encrypt.encrypt(password);
+                
+                const response = await fetch(`${baseURL}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: null,
+                        encryptedPassword: encryptedPassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="result">
+                            <span class="status success">성공</span>
+                            <p><strong>로그인 성공!</strong></p>
+                            <p>사용자명: ${data.username}</p>
+                            <p>메시지: ${data.message}</p>
+                            <p>토큰: ${data.token.substring(0, 30)}...</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <span class="status fail">실패</span>
+                            <p>오류: ${data.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <span class="status fail">실패</span>
+                        <p>요청 오류: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

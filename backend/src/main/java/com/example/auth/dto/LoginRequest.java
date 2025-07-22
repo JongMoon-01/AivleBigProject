@@ -3,6 +3,7 @@ package com.example.auth.dto;
 public class LoginRequest {
     private String username;
     private String password;
+    private String encryptedPassword;
 
     public LoginRequest() {}
 
@@ -25,5 +26,13 @@ public class LoginRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+    
+    public String getEncryptedPassword() {
+        return encryptedPassword;
+    }
+    
+    public void setEncryptedPassword(String encryptedPassword) {
+        this.encryptedPassword = encryptedPassword;
     }
 }
