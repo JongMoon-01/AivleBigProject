@@ -44,6 +44,14 @@ function Login() {
         setFormData({ username: '', password: '' });
         localStorage.setItem('token', data.token);
         localStorage.setItem('username', data.username);
+        localStorage.setItem('isAdmin', data.isAdmin);
+        
+        // 권한에 따른 리다이렉트
+        if (data.isAdmin) {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/dashboard';
+        }
       } else {
         setMessage(data.message);
         setMessageType('error');

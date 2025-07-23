@@ -17,6 +17,9 @@ public class User {
     
     @Column(nullable = false)
     private String password;
+    
+    @Column(nullable = false)
+    private boolean isAdmin = false;
 
     public User() {}
 
@@ -56,5 +59,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
     }
 }
