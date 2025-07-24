@@ -44,10 +44,10 @@ function Login() {
         setFormData({ username: '', password: '' });
         localStorage.setItem('token', data.token);
         localStorage.setItem('username', data.username);
-        localStorage.setItem('isAdmin', data.isAdmin);
+        localStorage.setItem('isAdmin', data.admin);
         
         // 권한에 따른 리다이렉트
-        if (data.isAdmin) {
+        if (data.admin) {
           window.location.href = '/admin';
         } else {
           window.location.href = '/dashboard';
