@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance";
 
 export default function ExcelViewerPage() {
   const [treeData, setTreeData] = useState([]);
@@ -12,14 +12,20 @@ export default function ExcelViewerPage() {
   }, []);
 
   const fetchTree = async () => {
-    const res = await axios.get("http://localhost:5000/api/folder-structure");
-    setTreeData(res.data);
+    try {
+      const res = await axiosInstance.get("/api/folder-structure");
+      setTreeData(res.data);
+    } catch (error) {
+      console.error("폴더 구조 로딩 실패:", error);
+      // 임시 데이터로 대체
+      setTreeData([]);
+    }
   };
 
   useEffect(() => {
     if (selected?.fullPath && selected.name.endsWith(".csv")) {
-      axios
-        .get("http://localhost:5000/api/read-csv", {
+      axiosInstance
+        .get("/api/read-csv", {
           params: { filePath: selected.fullPath },
         })
         .then((res) => setCsvData(res.data))
@@ -35,7 +41,7 @@ export default function ExcelViewerPage() {
   const handleDownload = () => {
     if (!selected?.fullPath) return;
     const encodedPath = encodeURIComponent(selected.fullPath);
-    window.open(`http://localhost:5000/api/download?filePath=${encodedPath}`, "_blank");
+    window.open(`http://localhost:8080/api/download?filePath=${encodedPath}`, "_blank");
   };
 
   const handleUpload = async (e) => {
@@ -54,7 +60,7 @@ export default function ExcelViewerPage() {
     formData.append("targetPath", selected.fullPath);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/upload", formData);
+      const res = await axiosInstance.post("/api/upload", formData);
       alert(`✅ 업로드 완료: ${res.data.filename}`);
       await fetchTree();
     } catch (err) {
