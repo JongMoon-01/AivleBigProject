@@ -124,6 +124,25 @@ npm start
 
 애플리케이션이 http://localhost:3000에서 실행됩니다.
 
+## 👥 기본 계정 정보
+
+### 관리자 계정 (미리 설정됨)
+
+시스템에 6명의 관리자 계정이 미리 설정되어 있습니다:
+
+| 이름 | 이메일 | 비밀번호 |
+|------|--------|----------|
+| jihyeon | jihyeon@admin.com | 4308 |
+| donghee | donghee@admin.com | 4623 |
+| jongmoon | jongmoon@admin.com | 1519 |
+| yura | yura@admin.com | 4115 |
+| seongwoo | seongwoo@admin.com | 8775 |
+| yongsun | yongsun@admin.com | 3751 |
+
+### 학생 계정
+- 학생 계정은 회원가입 페이지에서 직접 생성할 수 있습니다
+- 회원가입 시 기본적으로 `student` 역할이 부여됩니다
+
 ## 🔧 개발 스크립트
 
 ### Frontend
