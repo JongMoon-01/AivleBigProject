@@ -1,4 +1,30 @@
+# Spring Boot Help
 HELP.md
+
+# Compiled class file
+*.class
+
+# Log file
+*.log
+/logs/
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
+target/
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
@@ -35,3 +61,24 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database files
+*.db
+*.sqlite
+*.sql
+/data/
+
+# Environment variables
+.env
+.env.local
+application-local.yml
+application-prod.yml
+application-dev.yml
+
+# Gitpod
+.gitpod.yml
+.gitpod.dockerfile
