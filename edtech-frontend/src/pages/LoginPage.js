@@ -2,6 +2,14 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+/**
+ * 로그인 페이지 컴포넌트
+ * 
+ * 사용자 인증을 위한 로그인 폼을 제공합니다.
+ * 로그인 성공 시 역할에 따라 다른 페이지로 리다이렉트합니다.
+ * - 관리자: /admin 페이지로 이동
+ * - 학생: / (home) 페이지로 이동
+ */
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,6 +19,16 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  /**
+   * 로그인 폼 제출 핸들러
+   * 
+   * 1. 폼 제출 기본 동작 방지
+   * 2. 로그인 API 호출
+   * 3. 성공 시 역할에 따라 리다이렉트
+   * 4. 실패 시 에러 메시지 표시
+   * 
+   * @param {Event} e - 폼 제출 이벤트
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -88,6 +106,7 @@ export default function LoginPage() {
           </button>
         </form>
 
+        {/* 테스트 계정 정보 안내 */}
         <div className="mt-6 border-t pt-4 text-sm text-center text-gray-500">
           <p className="mb-1">관리자 테스트 계정</p>
           <p>이메일: jihyeon@admin.com / 비밀번호: 4308</p>

@@ -3,6 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../api/axiosInstance";
 
+/**
+ * 관리자 대시보드 컴포넌트
+ * 
+ * 관리자 전용 페이지로, 학생 계정 목록을 표시하고
+ * 특정 학생 계정으로 가장(임퍼서네이트)할 수 있는 기능을 제공합니다.
+ */
 export default function AdminDashboard() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,10 +17,19 @@ export default function AdminDashboard() {
   const { impersonate } = useAuth();
   const navigate = useNavigate();
 
+  /**
+   * 컴포넌트 마운트 시 학생 목록 로드
+   */
   useEffect(() => {
     fetchStudents();
   }, []);
 
+  /**
+   * 학생 목록을 서버에서 가져오는 함수
+   * 
+   * /api/auth/students 엔드포인트로 GET 요청을 보내
+   * ROLE_student 역할을 가진 모든 사용자를 조회합니다.
+   */
   const fetchStudents = async () => {
     try {
       const response = await axiosInstance.get("/api/auth/students");
@@ -26,6 +41,14 @@ export default function AdminDashboard() {
     }
   };
 
+  /**
+   * 학생 계정 가장 핸들러
+   * 
+   * 선택한 학생의 계정으로 로그인하여 시스템에 접근합니다.
+   * 성공 시 홈 페이지로 리다이렉트하고, 실패 시 에러 메시지를 표시합니다.
+   * 
+   * @param {number} studentId - 가장할 학생의 ID
+   */
   const handleImpersonate = async (studentId) => {
     const result = await impersonate(studentId);
     if (result.success) {
@@ -59,6 +82,7 @@ export default function AdminDashboard() {
           학생 이름을 클릭하면 해당 학생의 권한으로 시스템에 접근할 수 있습니다.
         </p>
         
+        {/* 학생 계정 목록 그리드 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {students.map((student) => (
             <button
@@ -79,6 +103,7 @@ export default function AdminDashboard() {
         )}
       </div>
 
+      {/* 가장 기능 사용 안내 */}
       <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <h3 className="font-semibold text-yellow-800 mb-2">안내사항</h3>
         <ul className="text-sm text-yellow-700 list-disc list-inside">

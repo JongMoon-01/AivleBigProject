@@ -14,6 +14,13 @@ import CourseDetailPage from "./pages/CourseDetailPage";
 import LectureSummaryPage from "./pages/LectureSummaryPage";
 import AdminDashboard from "./pages/AdminDashboard";
 
+/**
+ * 애플리케이션의 최상위 컴포넌트
+ * 
+ * React Router를 사용하여 라우팅을 구성하고,
+ * AuthProvider로 전체 앱에 인증 컨텍스트를 제공합니다.
+ * 헤더와 푸터를 포함한 기본 레이아웃을 정의합니다.
+ */
 export default function App() {
   return (
     <Router>
@@ -22,11 +29,11 @@ export default function App() {
           <Header />
           <main className="flex-grow">
             <Routes>
-              {/* Public Routes */}
+              {/* 공개 라우트 - 인증 없이 접근 가능 */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               
-              {/* Protected Routes */}
+              {/* 보호된 라우트 - 로그인 필수 */}
               <Route path="/" element={
                 <PrivateRoute>
                   <HomePage />
@@ -58,14 +65,14 @@ export default function App() {
                 </PrivateRoute>
               } />
               
-              {/* Admin Only Route */}
+              {/* 관리자 전용 라우트 - admin 역할 필수 */}
               <Route path="/admin" element={
                 <PrivateRoute adminOnly={true}>
                   <AdminDashboard />
                 </PrivateRoute>
               } />
               
-              {/* Default redirect */}
+              {/* 기본 리다이렉트 - 잘못된 경로로 접근 시 로그인 페이지로 이동 */}
               <Route path="*" element={<Navigate to="/login" />} />
             </Routes>
           </main>

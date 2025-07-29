@@ -1,22 +1,40 @@
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/edtech?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root 
-    password: aivle0517
-    driver-class-name: com.mysql.cj.jdbc.Driver
+# Spring Boot 애플리케이션 설정 파일
+# YAML 형식으로 작성된 구성 설정들을 정의합니다.
 
+spring:
+  # 데이터베이스 연결 설정
+  datasource:
+    # MySQL 데이터베이스 연결 URL
+    # - useSSL=false: SSL 연결 비활성화 (개발 환경용)
+    # - serverTimezone=UTC: 서버 시간대를 UTC로 설정
+    # - allowPublicKeyRetrieval=true: 공개 키 검색 허용
+    url: jdbc:mysql://localhost:3306/edtech?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root  # 데이터베이스 사용자명
+    password: aivle0517  # 데이터베이스 비밀번호
+    driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL JDBC 드라이버
+
+  # JPA/Hibernate 설정
   jpa:
     hibernate:
+      # DDL 자동 생성 전략
+      # update: 기존 테이블 구조를 유지하면서 변경사항만 적용
       ddl-auto: update
+    # SQL 쿼리를 콘솔에 출력 (개발 시 디버깅용)
     show-sql: true
     properties:
       hibernate:
+        # SQL 쿼리를 보기 좋게 포맷팅
         format_sql: true
+        # MySQL 8 방언 사용
         dialect: org.hibernate.dialect.MySQL8Dialect
 
+# 서버 설정
 server:
-  port: 8080
+  port: 8080  # 애플리케이션이 실행될 포트 번호
 
+# JWT 토큰 설정
 jwt:
+  # JWT 서명에 사용할 비밀 키 (256비트 이상 권장)
   secret: aVeryLongAndSecureSecretKeyForJWTTokenGenerationThatShouldBeAtLeast256BitsLong
+  # JWT 토큰 만료 시간 (밀리초 단위, 3600000ms = 1시간)
   expiration: 3600000
