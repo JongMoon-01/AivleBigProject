@@ -12,14 +12,6 @@ spring:
     properties:
       hibernate: 
         format_sql: true
-  
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
-
-server:
-  port: 8080
 
 jwt:
   secret: your_jwt_secret_key_here

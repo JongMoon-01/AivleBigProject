@@ -12,14 +12,14 @@ export default function ExcelViewerPage() {
   }, []);
 
   const fetchTree = async () => {
-    const res = await axios.get("http://localhost:5000/api/folder-structure");
+    const res = await axios.get("https://localhost:5000/api/folder-structure");
     setTreeData(res.data);
   };
 
   useEffect(() => {
     if (selected?.fullPath && selected.name.endsWith(".csv")) {
       axios
-        .get("http://localhost:5000/api/read-csv", {
+        .get("https://localhost:5000/api/read-csv", {
           params: { filePath: selected.fullPath },
         })
         .then((res) => setCsvData(res.data))
@@ -35,7 +35,7 @@ export default function ExcelViewerPage() {
   const handleDownload = () => {
     if (!selected?.fullPath) return;
     const encodedPath = encodeURIComponent(selected.fullPath);
-    window.open(`http://localhost:5000/api/download?filePath=${encodedPath}`, "_blank");
+    window.open(`https://localhost:5000/api/download?filePath=${encodedPath}`, "_blank");
   };
 
   const handleUpload = async (e) => {
@@ -54,7 +54,7 @@ export default function ExcelViewerPage() {
     formData.append("targetPath", selected.fullPath);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/upload", formData);
+      const res = await axios.post("https://localhost:5000/api/upload", formData);
       alert(`✅ 업로드 완료: ${res.data.filename}`);
       await fetchTree();
     } catch (err) {

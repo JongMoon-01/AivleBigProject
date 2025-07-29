@@ -4,10 +4,11 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: "https://8080-jongmoon01-aivlebigproj-bm0u19yd4cv.ws-us120.gitpod.io",
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 // ✅ 모든 요청에 JWT 토큰을 자동으로 포함
