@@ -1,9 +1,20 @@
 spring:
   datasource:
+<<<<<<< HEAD
     url: jdbc:mariadb://localhost:3306/edtech
     username: aivle17
     password: aivle0517
     driver-class-name: org.mariadb.jdbc.Driver
+=======
+    url: jdbc:mysql://localhost:3306/edtech_db?useSSL=false&serverTimezone=UTC
+    # ✅ MySQL 데이터베이스 연결 URL
+    username: root
+    # ✅ DB 사용자명
+    password: aivle0517
+    # ✅ DB 비밀번호 (보안상 production에서는 환경변수로 설정 권장)
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # ✅ MySQL 8.x 드라이버 사용
+>>>>>>> 4d00124f (feat: Implement quiz generation feature)
 
   jpa:
     hibernate:

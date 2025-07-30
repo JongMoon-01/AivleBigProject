@@ -1,19 +1,32 @@
+import { useState } from 'react';
+import QuizModal from './QuizModal';
+
 export default function CourseTable() {
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [selectedCourseType, setSelectedCourseType] = useState('');
+
   const courses = [
     {
-      title: "MATLAB/Simulink 모델링",
+      title: "AICE 대비 강좌",
       instructor: "이한나",
       tags: ["확인완료", "스마트융합", "과제"],
       stats: [0, 0, 0, 0, 0, 0],
+      quizType: "aice"
     },
     {
-      title: "도서관 활용 교육",
+      title: "한화에어로스페이스 취업 대비 강좌",
       instructor: "관리자",
       tags: ["필수", "온라인"],
       stats: [1, 0, 0, 0, 0, 0],
+      quizType: "hanwha"
     },
     // ...다른 강의 추가
   ];
+
+  const handleQuizClick = (quizType) => {
+    setSelectedCourseType(quizType);
+    setShowQuizModal(true);
+  };
 
   return (
     <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
@@ -44,14 +57,30 @@ export default function CourseTable() {
               </td>
               <td className="px-4 py-3">{course.stats[0]}%</td>
               <td className="px-4 py-3 text-right">
-                <button className="bg-indigo-600 text-white text-xs px-3 py-1 rounded hover:bg-indigo-700">
-                  강의 바로가기 →
-                </button>
+                <div className="flex flex-col gap-2">
+                  <button className="bg-indigo-600 text-white text-xs px-3 py-1 rounded hover:bg-indigo-700">
+                    강의 바로가기 →
+                  </button>
+                  {course.quizType && (
+                    <button 
+                      onClick={() => handleQuizClick(course.quizType)}
+                      className="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-700"
+                    >
+                      퀴즈 풀어보자 →
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      {showQuizModal && (
+        <QuizModal
+          courseType={selectedCourseType}
+          onClose={() => setShowQuizModal(false)}
+        />
+      )}
     </div>
   );
 }
