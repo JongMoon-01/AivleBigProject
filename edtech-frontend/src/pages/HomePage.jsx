@@ -38,8 +38,8 @@ export default function HomePage() {
           </button>
 
           <div className="flex flex-wrap justify-center gap-6">
-            {classes.map(({ title, name }, idx) => (
-              <ClassCard key={idx} title={title} name={name} />
+            {classes.map(({ classId, title }) => (
+              <ClassCard key={classId} classId={classId} title={title} />
             ))}
           </div>
         </div>

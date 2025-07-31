@@ -2,6 +2,8 @@ package com.edtech.edtech_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.util.List;
 
@@ -24,6 +26,7 @@ public class ClassEntity {
     private Integer headcount;
 
     @OneToMany(mappedBy = "classEntity")
+    @JsonManagedReference
     private List<Course> courses;
 
     @OneToMany(mappedBy = "classEntity")

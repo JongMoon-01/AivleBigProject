@@ -35,7 +35,7 @@ public class WebConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList("https://3000-jongmoon01-aivlebigproj-bm0u19yd4cv.ws-us120.gitpod.io"));
+        config.setAllowedOriginPatterns(Arrays.asList("https://3000-jongmoon01-aivlebigproj-bm0u19yd4cv.ws-us120.gitpod.io"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
 

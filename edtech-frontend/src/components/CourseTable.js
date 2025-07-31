@@ -1,20 +1,5 @@
-export default function CourseTable() {
-  const courses = [
-    {
-      title: "MATLAB/Simulink 모델링",
-      instructor: "이한나",
-      tags: ["확인완료", "스마트융합", "과제"],
-      stats: [0, 0, 0, 0, 0, 0],
-    },
-    {
-      title: "도서관 활용 교육",
-      instructor: "관리자",
-      tags: ["필수", "온라인"],
-      stats: [1, 0, 0, 0, 0, 0],
-    },
-    // ...다른 강의 추가
-  ];
-
+export default function CourseTable({ courses }) {
+  
   return (
     <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
       <table className="w-full text-sm text-left table-auto">
@@ -31,9 +16,8 @@ export default function CourseTable() {
           {courses.map((course, idx) => (
             <tr key={idx} className="border-t">
               <td className="px-4 py-3 font-semibold">{course.title}</td>
-              <td className="px-4 py-3">{course.instructor}</td>
               <td className="px-4 py-3 space-x-2">
-                {course.tags.map((tag, i) => (
+                {(course.tags || []).map((tag, i) => (
                   <span
                     key={i}
                     className="inline-block bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full"
@@ -42,7 +26,7 @@ export default function CourseTable() {
                   </span>
                 ))}
               </td>
-              <td className="px-4 py-3">{course.stats[0]}%</td>
+              <td className="px-4 py-3">0%</td>
               <td className="px-4 py-3 text-right">
                 <button className="bg-indigo-600 text-white text-xs px-3 py-1 rounded hover:bg-indigo-700">
                   강의 바로가기 →

@@ -1,12 +1,23 @@
 // components/CourseCarousel.js
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import classNames from "classnames";
-
-const courses = ["Course1", "Course2", "Course3", "Course4", "Course5"];
+import { useParams } from "react-router-dom";
 
 export default function CourseCarousel() {
+  const [courses, setCourses] = useState([]);
   const [active, setActive] = useState(0);
+  const { classId } = useParams();
+
+  useEffect(() => {
+    axios
+      .get("https://8080-jongmoon01-aivlebigproj-bm0u19yd4cv.ws-us120.gitpod.io/api/course", {
+        params: { classId: classId }
+      })
+      .then((res) => setCourses(res.data))
+      .catch((err) => console.error("코스 불러오기 실패:", err));
+  }, [classId]);
 
   const handleClick = (dir) => {
     setActive((prev) =>
@@ -21,18 +32,17 @@ export default function CourseCarousel() {
         {courses.map((course, idx) => {
           const offset = idx - active;
 
-          // ➤ 중심 기준 좌우 2개까지만 렌더링
           if (Math.abs(offset) > 2) return null;
 
           const isActive = offset === 0;
           const zIndex = 10 - Math.abs(offset);
-          const translateX = offset * 180; // 카드 간 거리
-          const rotateY = offset * -10; // 좌우 회전
-          const scale = 1 - Math.abs(offset) * 0.04; // 크기 조정
+          const translateX = offset * 180;
+          const rotateY = offset * -10;
+          const scale = 1 - Math.abs(offset) * 0.04;
 
           return (
             <motion.div
-              key={course}
+              key={course.courseId}
               className={classNames(
                 "absolute w-56 h-60 p-4 bg-white rounded-xl shadow-lg text-center transition-all duration-500",
                 {
@@ -45,8 +55,8 @@ export default function CourseCarousel() {
                 zIndex,
               }}
             >
-              <h3 className="text-base font-bold">{course}</h3>
-              <p className="text-sm mt-2 text-gray-500">Course Description</p>
+              <h3 className="text-base font-bold">{course.title}</h3>
+              <p className="text-sm mt-2 text-gray-500">Video: {course.videoUrl}</p>
             </motion.div>
           );
         })}

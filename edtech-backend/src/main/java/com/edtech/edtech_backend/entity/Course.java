@@ -2,6 +2,7 @@ package com.edtech.edtech_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.List;
 
@@ -18,7 +19,8 @@ public class Course {
     private Long courseId;
 
     @ManyToOne
-    @JoinColumn(name = "class_id")
+    @JoinColumn(name = "classId")
+    @JsonIgnore
     private ClassEntity classEntity;
 
     private String title;

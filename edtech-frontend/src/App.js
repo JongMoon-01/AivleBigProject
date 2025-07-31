@@ -28,9 +28,9 @@ export default function App() {
             <Route path="/excel" element={<ExcelViewerPage />} />
             <Route path="/" element={<HomePage />} />
             <Route path="/classregister" element={<ClassRegisterPage />} />
-            <Route path="/class/:id" element={<ClassDetailPage />} />
-            <Route path="/class/courses" element={<CourseListPage />} />
-            <Route path="/class/courses/course1/schedule" element={<CourseDetailPage />}/>
+            <Route path="/class/:classId" element={<ClassDetailPage />} />
+            <Route path="/class/:classId/courses" element={<CourseListPage />} />
+            <Route path="/class/:classId/courses/:courseId/schedule" element={<CourseDetailPage />} />
             <Route path="/class/courses/:courseId/summary" element={<LectureSummaryPage />} />
           </Routes>
         </main>
