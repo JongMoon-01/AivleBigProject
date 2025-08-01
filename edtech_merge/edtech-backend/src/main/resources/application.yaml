@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/edtech_db?useSSL=false&serverTimezone=UTC
+    # ✅ MySQL 데이터베이스 연결 URL
+    username: root
+    # ✅ DB 사용자명
+    password: 
+    # ✅ DB 비밀번호 (보안상 production에서는 환경변수로 설정 권장)
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # ✅ MySQL 8.x 드라이버 사용
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+      # ✅ 실행 시 테이블 자동 생성 후 종료 시 삭제 (개발용)
+      # 👉 운영 환경에서는 `update`, `validate`, `none` 권장
+    show-sql: false
+    # ✅ 실행되는 SQL 콘솔 출력 여부 (디버깅용으로 true 가능)
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        # ✅ MySQL 8.x에 맞는 하이버네이트 방언 설정
+        format_sql: true
+        # ✅ SQL을 보기 좋게 출력 (show-sql이 true일 때 적용됨)
+
+server:
+  port: 8080
+  # ✅ 내장 서버가 실행될 포트 번호
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    # ✅ Hibernate SQL 로그 레벨 (기본은 DEBUG → 너무 많을 수 있음)
+    com.edtech.edtech_backend: INFO
+    # ✅ 애플리케이션 로깅 레벨 (디버깅 시 DEBUG로 변경 가능)

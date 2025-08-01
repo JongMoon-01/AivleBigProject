@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: edtech-AIbackend
+
+server:
+  port: 8081
+
+openai:
+  api:
+    key: ${OPENAI_API_KEY}
+    model: gpt-3.5-turbo
+    max-tokens: 1000
+    temperature: 0.7
+
+pdf:
+  storage:
+    path: ./
+
+logging:
+  level:
+    com.edtech.edtech_aibackend: INFO
+    org.springframework.web: INFO
