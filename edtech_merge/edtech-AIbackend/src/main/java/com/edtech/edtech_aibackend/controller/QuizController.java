@@ -23,27 +23,27 @@ public class QuizController {
     private final QuizGenerationService quizGenerationService;
     private final Map<String, QuizResponse> quizCache = new HashMap<>();
     
-    @PostMapping("/aice")
-    public ResponseEntity<?> generateAiceQuiz() {
+    @PostMapping("/korean-history")
+    public ResponseEntity<?> generateKoreanHistoryQuiz() {
         try {
-            QuizResponse quiz = quizGenerationService.generateQuiz("aice");
-            quizCache.put("aice_" + quiz.getQuizzes().get(0).getId(), quiz);
+            QuizResponse quiz = quizGenerationService.generateQuiz("korean_history");
+            quizCache.put("korean-history_" + quiz.getQuizzes().get(0).getId(), quiz);
             return ResponseEntity.ok(quiz);
         } catch (Exception e) {
-            log.error("Failed to generate AICE quiz", e);
+            log.error("Failed to generate Korean History quiz", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "퀴즈 생성에 실패했습니다: " + e.getMessage()));
         }
     }
     
-    @PostMapping("/hanwha")
-    public ResponseEntity<?> generateHanwhaQuiz() {
+    @PostMapping("/linear-algebra")
+    public ResponseEntity<?> generateLinearAlgebraQuiz() {
         try {
-            QuizResponse quiz = quizGenerationService.generateQuiz("hanwha");
-            quizCache.put("hanwha_" + quiz.getQuizzes().get(0).getId(), quiz);
+            QuizResponse quiz = quizGenerationService.generateQuiz("linear_algebra");
+            quizCache.put("linear-algebra_" + quiz.getQuizzes().get(0).getId(), quiz);
             return ResponseEntity.ok(quiz);
         } catch (Exception e) {
-            log.error("Failed to generate Hanwha quiz", e);
+            log.error("Failed to generate Linear Algebra quiz", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "퀴즈 생성에 실패했습니다: " + e.getMessage()));
         }
@@ -52,12 +52,17 @@ public class QuizController {
     @PostMapping("/submit")
     public ResponseEntity<?> submitQuiz(@RequestBody QuizSubmission submission) {
         try {
+            // 캐시 키 생성 (courseType은 korean-history 또는 linear-algebra 형식)
             String cacheKey = submission.getCourseType() + "_" + submission.getAnswers().keySet().iterator().next();
+            log.info("Looking for quiz with cache key: {}", cacheKey);
+            log.info("Available cache keys: {}", quizCache.keySet());
+            
             QuizResponse cachedQuiz = quizCache.get(cacheKey);
             
             if (cachedQuiz == null) {
+                log.error("Quiz not found in cache. Cache key: {}, Available keys: {}", cacheKey, quizCache.keySet());
                 return ResponseEntity.badRequest()
-                        .body(Map.of("error", "퀴즈를 찾을 수 없습니다"));
+                        .body(Map.of("error", "퀴즈를 찾을 수 없습니다. 캐시 키: " + cacheKey));
             }
             
             int correctCount = 0;

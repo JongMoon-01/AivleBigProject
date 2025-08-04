@@ -11,22 +11,34 @@ export default function QuizModal({ courseType, onClose }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const abortController = new AbortController();
+    
+    const fetchQuiz = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await axios.post(
+          `http://localhost:8081/api/quiz/${courseType}`,
+          {},
+          { signal: abortController.signal }
+        );
+        setQuizzes(response.data.quizzes);
+        setLoading(false);
+      } catch (err) {
+        if (!axios.isCancel(err)) {
+          console.error('퀴즈 로드 실패:', err);
+          setError('퀴즈를 불러오는데 실패했습니다. 다시 시도해주세요.');
+          setLoading(false);
+        }
+      }
+    };
+    
     fetchQuiz();
+    
+    return () => {
+      abortController.abort();
+    };
   }, [courseType]);
-
-  const fetchQuiz = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.post(`http://localhost:8081/api/quiz/${courseType}`);
-      setQuizzes(response.data.quizzes);
-      setLoading(false);
-    } catch (err) {
-      console.error('퀴즈 로드 실패:', err);
-      setError('퀴즈를 불러오는데 실패했습니다. 다시 시도해주세요.');
-      setLoading(false);
-    }
-  };
 
   const handleAnswerSelect = (quizId, answerIndex) => {
     setSelectedAnswers({
@@ -151,7 +163,7 @@ export default function QuizModal({ courseType, onClose }) {
       <div className="bg-white rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">
-            {courseType === 'aice' ? 'AICE 대비 퀴즈' : '한화에어로스페이스 퀴즈'}
+            {courseType === 'korean-history' ? '한국의 역사 퀴즈' : '선형대수학 퀴즈'}
           </h2>
           <button 
             onClick={onClose}

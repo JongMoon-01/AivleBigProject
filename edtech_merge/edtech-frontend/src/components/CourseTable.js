@@ -7,18 +7,18 @@ export default function CourseTable() {
 
   const courses = [
     {
-      title: "AICE 대비 강좌",
+      title: "한국의 역사",
       instructor: "이한나",
       tags: ["확인완료", "스마트융합", "과제"],
       stats: [0, 0, 0, 0, 0, 0],
-      quizType: "aice"
+      quizType: "korean-history"
     },
     {
-      title: "한화에어로스페이스 취업 대비 강좌",
+      title: "선형대수학",
       instructor: "관리자",
       tags: ["필수", "온라인"],
       stats: [1, 0, 0, 0, 0, 0],
-      quizType: "hanwha"
+      quizType: "linear-algebra"
     },
     // ...다른 강의 추가
   ];
