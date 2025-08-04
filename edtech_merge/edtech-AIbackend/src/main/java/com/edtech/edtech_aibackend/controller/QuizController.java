@@ -3,7 +3,7 @@ package com.edtech.edtech_aibackend.controller;
 import com.edtech.edtech_aibackend.model.QuizResponse;
 import com.edtech.edtech_aibackend.model.QuizResult;
 import com.edtech.edtech_aibackend.model.QuizSubmission;
-import com.edtech.edtech_aibackend.service.QuizGenerationService;
+import com.edtech.edtech_aibackend.service.RagQuizGenerationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,13 +20,13 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:3000")
 public class QuizController {
     
-    private final QuizGenerationService quizGenerationService;
+    private final RagQuizGenerationService ragQuizGenerationService;
     private final Map<String, QuizResponse> quizCache = new HashMap<>();
     
     @PostMapping("/korean-history")
     public ResponseEntity<?> generateKoreanHistoryQuiz() {
         try {
-            QuizResponse quiz = quizGenerationService.generateQuiz("korean_history");
+            QuizResponse quiz = ragQuizGenerationService.generateQuiz("korean-history");
             quizCache.put("korean-history_" + quiz.getQuizzes().get(0).getId(), quiz);
             return ResponseEntity.ok(quiz);
         } catch (Exception e) {
@@ -39,7 +39,7 @@ public class QuizController {
     @PostMapping("/linear-algebra")
     public ResponseEntity<?> generateLinearAlgebraQuiz() {
         try {
-            QuizResponse quiz = quizGenerationService.generateQuiz("linear_algebra");
+            QuizResponse quiz = ragQuizGenerationService.generateQuiz("linear-algebra");
             quizCache.put("linear-algebra_" + quiz.getQuizzes().get(0).getId(), quiz);
             return ResponseEntity.ok(quiz);
         } catch (Exception e) {

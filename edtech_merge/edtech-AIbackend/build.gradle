@@ -1,26 +1,35 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.7.18'
-    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+    id 'org.springframework.boot' version '3.4.8'
+    id 'io.spring.dependency-management' version '1.1.6'
 }
 
 group = 'com.edtech'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    sourceCompatibility = '11'
+    sourceCompatibility = '17'
 }
 
 repositories {
     mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
+}
+
+ext {
+    set('springAiVersion', "1.0.1")
 }
 
 dependencies {
+    implementation platform("org.springframework.ai:spring-ai-bom:${springAiVersion}")
+    
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     
-    // OpenAI Java SDK
-    implementation 'com.theokanning.openai-gpt3-java:service:0.18.2'
+    // Spring AI
+    implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
+    implementation 'org.springframework.ai:spring-ai-qdrant-store-spring-boot-starter'
     
     // PDF processing
     implementation 'org.apache.pdfbox:pdfbox:2.0.29'
