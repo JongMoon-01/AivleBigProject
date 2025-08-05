@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Line, Bar } from 'react-chartjs-2';
+import FocusMonitor from '../components/FocusMonitor';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -539,6 +540,11 @@ const NewMainDashboard = () => {
           <KPICard metric={dashboardData.kpiMetrics.attendance} />
           <KPICard metric={dashboardData.kpiMetrics.reviewRate} />
           <KPICard metric={dashboardData.kpiMetrics.focusAverage} />
+        </div>
+
+        {/* 집중도 실시간 모니터링 */}
+        <div className="mb-8">
+          <FocusMonitor userId={userId} isActive={true} />
         </div>
 
         {/* 차트 영역 (2x2 그리드) */}

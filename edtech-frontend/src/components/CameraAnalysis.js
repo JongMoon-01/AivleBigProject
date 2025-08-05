@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import FocusMonitor from './FocusMonitor';
 
 const CameraAnalysis = ({ userId = 1, courseId = 1 }) => {
   const videoRef = useRef(null);

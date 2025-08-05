@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import emotion, gaze, task, final, feedback, integrate, realtime, users, scores
+from app.routers import emotion, gaze, task, final, feedback, integrate, realtime, users, scores, focus_monitor
 
 app = FastAPI(
     title="AI 집중도 분석 API",
@@ -33,6 +33,9 @@ app.include_router(users.router, prefix="/api", tags=["User Management"])
 
 # 점수 저장 및 분석 라우터 추가
 app.include_router(scores.router, prefix="/api", tags=["Score Management"])
+
+# 실시간 집중도 모니터링 라우터 추가
+app.include_router(focus_monitor.router, prefix="/api", tags=["Focus Monitoring"])
 
 @app.get("/")
 def root():
