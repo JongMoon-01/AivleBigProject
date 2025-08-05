@@ -1,57 +1,58 @@
+import { useState } from 'react';
+import QuizModal from './QuizModal.js';
+
 export default function CourseTable() {
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [selectedCourseType, setSelectedCourseType] = useState('');
+
   const courses = [
     {
-      title: "MATLAB/Simulink 모델링",
-      instructor: "이한나",
-      tags: ["확인완료", "스마트융합", "과제"],
-      stats: [0, 0, 0, 0, 0, 0],
-    },
-    {
-      title: "도서관 활용 교육",
+      title: "AI 퀴즈 생성 강의 (h265_1920)",
       instructor: "관리자",
-      tags: ["필수", "온라인"],
-      stats: [1, 0, 0, 0, 0, 0],
-    },
-    // ...다른 강의 추가
+      tags: ["테스트용", "AI기반", "퀴즈생성"],
+      stats: [0, 0, 0, 0, 0, 0],
+      quizType: "aice"  // summaryId 매핑에서 사용될 키
+    }
   ];
+
+  const handleQuizClick = (quizType) => {
+    setSelectedCourseType(quizType);
+    setShowQuizModal(true);
+  };
 
   return (
     <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
       <table className="w-full text-sm text-left table-auto">
-        <thead className="bg-gray-100 text-gray-700">
-          <tr>
-            <th className="px-4 py-2">강의명</th>
-            <th className="px-4 py-2">강사</th>
-            <th className="px-4 py-2">태그</th>
-            <th className="px-4 py-2">진도율</th>
-            <th className="px-4 py-2 text-right">바로가기</th>
-          </tr>
-        </thead>
         <tbody>
-          {courses.map((course, idx) => (
-            <tr key={idx} className="border-t">
-              <td className="px-4 py-3 font-semibold">{course.title}</td>
+          {courses.map((course, index) => (
+            <tr key={index} className="border-b last:border-b-0">
+              <td className="px-4 py-3">{course.title}</td>
               <td className="px-4 py-3">{course.instructor}</td>
-              <td className="px-4 py-3 space-x-2">
-                {course.tags.map((tag, i) => (
-                  <span
-                    key={i}
-                    className="inline-block bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </td>
               <td className="px-4 py-3">{course.stats[0]}%</td>
               <td className="px-4 py-3 text-right">
-                <button className="bg-indigo-600 text-white text-xs px-3 py-1 rounded hover:bg-indigo-700">
-                  강의 바로가기 →
-                </button>
+                <div className="flex flex-col gap-2">
+                  <button className="bg-indigo-600 text-white text-xs px-3 py-1 rounded hover:bg-indigo-700">
+                    강의 바로가기 →
+                  </button>
+                  <button 
+                    onClick={() => handleQuizClick(course.quizType)}
+                    className="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-700"
+                  >
+                    퀴즈 풀어보자 →
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      {showQuizModal && (
+        <QuizModal
+          courseType={selectedCourseType}
+          onClose={() => setShowQuizModal(false)}
+        />
+      )}
     </div>
   );
 }
+

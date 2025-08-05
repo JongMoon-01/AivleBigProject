@@ -1,10 +1,20 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware  # ✅ CORS 모듈 추가
 from app.api.endpoints import router
 from dotenv import load_dotenv
 
 load_dotenv()  # ✅ .env 환경변수 로드
 
 app = FastAPI()
+
+# ✅ CORS 설정 추가
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # ✅ React 개발 서버 주소
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ✅ 라우터 등록
 app.include_router(router)
@@ -13,3 +23,4 @@ app.include_router(router)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="127.0.0.1", port=8081, reload=True)
+
