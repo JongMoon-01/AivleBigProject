@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 전체 대시보드 배경 */
+body {
+  background-color: #f9fafb;
+  margin: 0;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 사이드바 */
+.sidebar {
+  width: 240px;
+  background-color: #1f2937; /* Tailwind gray-800 */
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+/* 메인 컨텐츠 */
+.main-content {
+  flex: 1;
+  padding: 20px;
+}
+
+/* ✅ 불필요한 레이아웃 관련 CSS 제거
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+*/
