@@ -1,0 +1,90 @@
+=== AI 집중도 분석 대시보드 - 사용자별 데이터 확인 방법 ===
+
+🎯 목적: 각 사용자별로 다른 학습 패턴과 성과 데이터가 제대로 표시되는지 확인
+
+📋 확인 순서:
+
+1. **시스템 실행 확인**
+   - MySQL: docker ps | grep mysql (실행 중이어야 함)
+   - Spring Boot: http://localhost:8080/api/dashboard/test 접속
+   - React: http://localhost:3000 접속
+   - FastAPI: http://localhost:8001/docs 접속
+
+2. **기본 대시보드 접속**
+   - URL: http://localhost:3000/new-dashboard
+   - 기본적으로 사용자 1 데이터가 표시됨
+   - 확인할 수치: 출석률 93%, 복습률 88%, 집중도 76%
+
+3. **사용자 2 (우수 사용자) 확인**
+   - 방법 1: URL 직접 입력
+     → http://localhost:3000/new-dashboard?userId=2
+   - 방법 2: 우상단 드롭다운에서 "사용자 2 (우수)" 선택
+   - 확인할 변화:
+     * KPI 카드: 출석률 88%, 복습률 92%, 집중도 82%
+     * 시간대별 집중도: 8AM부터 높은 점수 (15점)
+     * 하단 표시: "현재 사용자: 사용자 2"
+
+4. **사용자 3 (저조 사용자) 확인**
+   - URL: http://localhost:3000/new-dashboard?userId=3
+   - 확인할 변화:
+     * KPI 카드: 출석률 95%, 복습률 78%, 집중도 71%
+     * 시간대별 집중도: 6PM에도 높은 점수 (60점)
+     * 특징: 출석률은 높지만 집중도가 상대적으로 낮음
+
+5. **사용자 4 (보통 사용자) 확인**
+   - URL: http://localhost:3000/new-dashboard?userId=4
+   - 확인할 변화:
+     * KPI 카드: 출석률 85%, 복습률 85%, 집중도 79%
+     * 시간대별 집중도: 전반적으로 평균적인 패턴
+     * 특징: 모든 지표가 균형잡힌 수치
+
+6. **차트 상호작용 확인 (모든 사용자에서 동일)**
+   - Focus Score 차트에 마우스 올리기 → "Focus Score: 60" 표시
+   - Review Materials 차트에 마우스 올리기 → "Seconds: 2.5s" 표시
+   - Response Time 차트에 마우스 올리기 → "Density: 0.847" 표시
+   - Weekly Change 차트에 마우스 올리기 → "Change: +2" 표시
+
+7. **드롭다운 사용자 변경 테스트**
+   - 우상단 "사용자 선택" 드롭다운 클릭
+   - 다른 사용자 선택 (예: 사용자 1 → 사용자 2)
+   - 페이지 자동 새로고침 확인
+   - 모든 데이터 (KPI, 차트, 하단 정보) 변경 확인
+
+=== 예상 결과 비교표 ===
+
+| 항목 | 사용자1 | 사용자2 | 사용자3 | 사용자4 |
+|------|---------|---------|---------|---------|
+| 출석률 | 93% | 88% | 95% | 85% |
+| 복습률 | 88% | 92% | 78% | 85% |
+| 집중도 | 76% | 82% | 71% | 79% |
+| 8AM 집중도 | 0 | 15 | 5 | 8 |
+| 2PM 집중도 | 60 | 75 | 50 | 65 |
+| 6PM 집중도 | 35 | 30 | 60 | 45 |
+
+=== 문제 해결 ===
+
+🔧 만약 데이터가 바뀌지 않는다면:
+1. 브라우저 새로고침 (F5)
+2. 브라우저 캐시 삭제 (Ctrl+Shift+R)
+3. Spring Boot 재시작 확인
+4. URL에 ?userId=숫자 파라미터 직접 입력
+
+🔧 차트 툴팁이 안 보인다면:
+1. 차트 영역에 정확히 마우스 위치
+2. 브라우저 JavaScript 활성화 확인
+3. 개발자 도구(F12)에서 에러 메시지 확인
+
+=== API 레벨 확인 (선택사항) ===
+
+터미널에서 직접 API 호출로도 확인 가능:
+- curl "http://localhost:8080/api/dashboard/user/1" | jq '.kpiMetrics'
+- curl "http://localhost:8080/api/dashboard/user/2" | jq '.kpiMetrics'
+- curl "http://localhost:8080/api/dashboard/user/3" | jq '.kpiMetrics'
+- curl "http://localhost:8080/api/dashboard/user/4" | jq '.kpiMetrics'
+
+각각 다른 출석률, 복습률, 집중도 수치가 나와야 함
+
+---
+작성일: 2025-08-05
+확인 완료 시스템: ✅ MySQL, ✅ Spring Boot, ✅ React, ✅ FastAPI
+테스트 대상: 사용자별 차별화된 학습 데이터 및 차트 상호작용
