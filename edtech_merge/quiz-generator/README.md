@@ -66,6 +66,8 @@ quiz-generator/
 
 ## 설치 방법
 
+<<터미널에서 cd quiz-generator로 이동해라 (중요!!!)>>
+
 1. 가상환경 생성 및 활성화
 ```bash
 python -m venv venv
@@ -90,8 +92,17 @@ chroma run --path ./chroma_data --port 8000
 ```
 OPENAI_API_KEY=your_actual_api_key_here
 ```
+-------------새로운 터미널을 열어라, 그리고 cd quiz-generator로 이동해라!!!! --------------
 
-5. 애플리케이션 실행
+5.가상환경 활성화해라
+```bash
+# Windows
+venv\Scripts\activate
+# Linux/Mac
+source venv/bin/activate
+```
+
+6. 애플리케이션 실행
 ```bash
 python -m app.main
 ```
