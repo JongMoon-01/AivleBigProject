@@ -58,25 +58,74 @@ const NewMainDashboard = () => {
   };
 
   const useMockData = () => {
-    // 더미 데이터 (백엔드 연결 실패 시 사용)
+    // 사용자별 차별화된 더미 데이터
+    const userDataMap = {
+      '1': {
+        kpi: { attendance: 93, reviewRate: 88, focusAverage: 76 },
+        focusData: [
+          {"time": "8AM", "score": 0},
+          {"time": "10AM", "score": 10}, 
+          {"time": "12PM", "score": 25},
+          {"time": "2PM", "score": 60},
+          {"time": "4PM", "score": 70},
+          {"time": "6PM", "score": 35}
+        ]
+      },
+      '2': {
+        kpi: { attendance: 88, reviewRate: 92, focusAverage: 82 },
+        focusData: [
+          {"time": "8AM", "score": 15},
+          {"time": "10AM", "score": 20}, 
+          {"time": "12PM", "score": 45},
+          {"time": "2PM", "score": 75},
+          {"time": "4PM", "score": 65},
+          {"time": "6PM", "score": 30}
+        ]
+      },
+      '3': {
+        kpi: { attendance: 95, reviewRate: 78, focusAverage: 71 },
+        focusData: [
+          {"time": "8AM", "score": 5},
+          {"time": "10AM", "score": 15}, 
+          {"time": "12PM", "score": 30},
+          {"time": "2PM", "score": 50},
+          {"time": "4PM", "score": 55},
+          {"time": "6PM", "score": 60}
+        ]
+      },
+      '4': {
+        kpi: { attendance: 85, reviewRate: 85, focusAverage: 79 },
+        focusData: [
+          {"time": "8AM", "score": 8},
+          {"time": "10AM", "score": 18}, 
+          {"time": "12PM", "score": 35},
+          {"time": "2PM", "score": 65},
+          {"time": "4PM", "score": 60},
+          {"time": "6PM", "score": 45}
+        ]
+      }
+    };
+
+    const currentUserData = userDataMap[userId] || userDataMap['1'];
+    
     const mockData = {
       "kpiMetrics": {
         "attendance": {
-          "value": 93,
+          "value": currentUserData.kpi.attendance,
           "unit": "%",
           "label": "출석률",
           "icon": "✓",
           "color": "blue"
         },
         "reviewRate": {
-          "value": 88,
+          "value": currentUserData.kpi.reviewRate,
           "unit": "%", 
           "label": "해당과목 복습률",
           "icon": "✓",
           "color": "orange"
         },
         "focusAverage": {
-          "value": 76,
+          "value": currentUserData.kpi.focusAverage,
           "unit": "%",
           "label": "과목 집중도 평균", 
           "icon": "🧠",
@@ -87,14 +136,7 @@ const NewMainDashboard = () => {
         "focusScoreByTime": {
           "title": "Focus Score by Time Of Day",
           "type": "area",
-          "data": [
-            {"time": "8AM", "score": 0},
-            {"time": "10AM", "score": 10}, 
-            {"time": "12PM", "score": 25},
-            {"time": "2PM", "score": 60},
-            {"time": "4PM", "score": 70},
-            {"time": "6PM", "score": 35}
-          ],
+          "data": currentUserData.focusData,
           "color": "#F59E0B",
           "fillOpacity": 0.2
         },
