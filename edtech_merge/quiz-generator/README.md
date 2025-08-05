@@ -4,14 +4,14 @@ RAG 기반 퀴즈 생성 시스템 (Python FastAPI + ChromaDB + OpenAI)
 
 ## 개요
 
-Quiz Generator는 교육 콘텐츠(강의 자막)를 기반으로 자동으로 퀴즈를 생성하는 시스템입니다. RAG(Retrieval-Augmented Generation) 기술을 활용하여 대용량 강의 내용에서도 효과적으로 퀴즈를 생성할 수 있습니다.
+Quiz Generator는 교육 콘텐츠(텍스트 파일)를 기반으로 자동으로 퀴즈를 생성하는 시스템입니다. RAG(Retrieval-Augmented Generation) 기술을 활용하여 대용량 강의 내용에서도 효과적으로 퀴즈를 생성할 수 있습니다.
 
 ## 작동 원리
 
 ### 1. 전체 프로세스
 ```
-VTT 자막 파일 → 텍스트 추출 → 오류 수정 → 청크 분할 → 벡터 임베딩 → ChromaDB 저장
-                                                                        ↓
+텍스트 파일 → 내용 읽기 → 청크 분할 → 벡터 임베딩 → ChromaDB 저장
+                                                        ↓
 프론트엔드 요청 ← 퀴즈 JSON 응답 ← GPT 퀴즈 생성 ← 관련 콘텐츠 검색 ←
 ```
 
@@ -22,7 +22,7 @@ VTT 자막 파일 → 텍스트 추출 → 오류 수정 → 청크 분할 → �
 - **청크 기반 처리**: 긴 텍스트를 작은 단위로 분할하여 효율적 처리
 
 ### 3. 주요 구성 요소
-1. **Content Extraction Service**: VTT 자막 파일에서 텍스트 추출 및 청크 분할
+1. **Content Extraction Service**: 텍스트 파일 읽기 및 청크 분할
 2. **RAG Service**: ChromaDB와 통신하여 벡터 저장/검색
 3. **Quiz Generation Service**: OpenAI API를 활용한 퀴즈 생성
 4. **FastAPI Router**: HTTP 엔드포인트 제공
@@ -40,11 +40,11 @@ quiz-generator/
 │   ├── routers/             # API 라우터
 │   │   └── quiz.py          # 퀴즈 관련 엔드포인트
 │   └── services/            # 비즈니스 로직
-│       ├── content_extraction.py  # VTT 파일 처리
+│       ├── content_extraction.py  # 텍스트 파일 처리
 │       ├── quiz_generation.py     # 퀴즈 생성 로직
 │       └── rag_service.py         # 벡터 DB 연동
 ├── resources/
-│   └── vtt/                 # VTT 자막 파일
+│   └── txt/                 # 텍스트 파일
 ├── chroma_data/             # ChromaDB 데이터 저장소
 └── requirements.txt         # Python 의존성
 
@@ -53,8 +53,8 @@ quiz-generator/
 ## 데이터 흐름
 
 1. **초기 로드 시**:
-   - VTT 파일 읽기 → 텍스트 추출 → GPT로 오류 수정
-   - 수정된 텍스트를 500자 단위로 청크 분할
+   - 텍스트 파일 읽기 → 내용 추출
+   - 텍스트를 500자 단위로 청크 분할
    - 각 청크를 OpenAI 임베딩으로 벡터화
    - ChromaDB에 벡터와 메타데이터 저장
 
