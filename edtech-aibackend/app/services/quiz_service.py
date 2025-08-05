@@ -1,33 +1,39 @@
 import os
-import re
 import json
 from dotenv import load_dotenv
 from openai import OpenAI
 from sqlalchemy.orm import Session
+from app.models.ai_quiz_model import AIQuiz, QuizTypeEnum
+from app.models.summary_model import Summary  # Summary 테이블 불러오기
 
 # 환경 변수 로드 및 OpenAI 클라이언트 설정
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 openai = OpenAI(api_key=api_key)
 
-async def process_vtt_and_generate_quiz(file, db: Session, user_id: int, summary_id: int):
-    from app.models.ai_quiz_model import AIQuiz, QuizTypeEnum
+def generate_quiz_from_summary(summary_id: int, user_id: str, db: Session):
+    """
+    Summary 테이블에서 content를 가져와 퀴즈 생성 후 AIQuiz에 저장
 
-    # 1️⃣ 파일 내용 읽기 및 디코딩
-    contents = await file.read()
-    text = contents.decode("utf-8")
+    Parameters:
+    - summary_id (int): 요약 데이터 ID
+    - user_id (str): 사용자 ID
+    - db (Session): DB 세션
 
-    # 2️⃣ 시간 정보 제거
-    cleaned = re.sub(r"\d{2}:\d{2}:\d{2}.\d{3} --> .*", "", text)
+    Returns:
+    - List[Dict]: 생성된 퀴즈 리스트 또는 에러 정보
+    """
+    summary = db.query(Summary).filter(Summary.summary_id == summary_id, Summary.user_id == user_id).first()
+    if not summary:
+        return [{"error": "Summary not found"}]
 
-    # 3️⃣ 빈 줄 제거
-    cleaned_text = "\n".join([line.strip() for line in cleaned.splitlines() if line.strip()])
+    content_text = summary.content.strip()
 
-    # 4️⃣ GPT 프롬프트 (보기 텍스트 포함 구조 요구)
+    # ✅ 퀴즈 5개 생성으로 수정
     prompt = f"""
-    다음 자막 내용을 바탕으로 총 10개의 퀴즈를 만들어줘.
-    - O/X 문제 5개
-    - 객관식 4지선다형 문제 5개
+    다음 내용을 바탕으로 총 5개의 퀴즈를 만들어줘.
+    - O/X 문제 2개
+    - 객관식 4지선다형 문제 3개
     - 모든 보기는 실제 텍스트로 채워줘.
     - 아래 JSON 형식으로만 출력하고 다른 말은 하지마:
 
@@ -52,12 +58,11 @@ async def process_vtt_and_generate_quiz(file, db: Session, user_id: int, summary
       }}
     ]
 
-    자막 내용:
-    {cleaned_text}
+    요약 내용:
+    {content_text}
     """
 
     try:
-        # 5️⃣ GPT 호출
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
@@ -68,15 +73,14 @@ async def process_vtt_and_generate_quiz(file, db: Session, user_id: int, summary
         print("🔍 GPT 응답:", gpt_reply)
 
         try:
-            # 6️⃣ JSON 파싱
             quiz_list_raw = json.loads(gpt_reply)
 
-            if len(quiz_list_raw) < 10:
+            # ✅ 퀴즈 수 최소 5개 확인
+            if len(quiz_list_raw) < 5:
                 print(f"❗퀴즈 수 부족: {len(quiz_list_raw)}개 생성됨")
-                return [{"error": f"퀴즈 10개 생성 실패 (현재 {len(quiz_list_raw)}개)", "raw_response": gpt_reply}]
+                return [{"error": f"퀴즈 5개 생성 실패 (현재 {len(quiz_list_raw)}개)", "raw_response": gpt_reply}]
 
-            # 6-2️⃣ 초과 시 잘라서 사용
-            quiz_list_raw = quiz_list_raw[:10]
+            quiz_list_raw = quiz_list_raw[:5]  # 초과 시 5개로 자르기
 
             saved_quizzes = []
 
@@ -85,14 +89,12 @@ async def process_vtt_and_generate_quiz(file, db: Session, user_id: int, summary
                 options = quiz.get("options", [])
                 answer = quiz.get("answer", "").strip()
 
-                # ✅ 퀴즈 유형 판단
                 labels = [opt["label"] for opt in options]
                 if labels == ["O", "X"]:
                     quiz_type = QuizTypeEnum.OX
                 else:
                     quiz_type = QuizTypeEnum.MCQ
 
-                # ✅ DB 저장
                 new_quiz = AIQuiz(
                     summary_id=summary_id,
                     user_id=user_id,
@@ -121,6 +123,9 @@ async def process_vtt_and_generate_quiz(file, db: Session, user_id: int, summary
     except Exception as e:
         print("❗OpenAI 오류:", e)
         return [{"error": "퀴즈 생성 실패", "details": str(e)}]
+
+
+
 
 
 

@@ -15,6 +15,7 @@ export default function QuizModal({ courseType, onClose }) {
     hanwha: 2
   };
   const summaryId = summaryIdMap[courseType] || 1;
+  const userId = "user123";  // 고정된 user_id
 
   useEffect(() => {
     fetchQuiz();
@@ -50,17 +51,12 @@ export default function QuizModal({ courseType, onClose }) {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('/sample.vtt');
-      if (!response.ok) throw new Error("sample.vtt 파일을 찾을 수 없습니다.");
-      const blob = await response.blob();
-      const formData = new FormData();
-      formData.append('file', blob, 'sample.vtt');
 
-      await axios.post('http://localhost:8081/generate-quiz', formData);
+      await axios.post(`http://localhost:8081/generate-quiz/${summaryId}/${userId}`);
       await fetchQuiz();
     } catch (err) {
       console.error('퀴즈 생성 실패:', err);
-      setError('샘플 자막 파일을 불러올 수 없습니다.');
+      setError('퀴즈 생성 중 오류 발생');
       setLoading(false);
     }
   };
@@ -86,7 +82,7 @@ export default function QuizModal({ courseType, onClose }) {
       const response = await axios.post('http://localhost:8081/submit-quiz', {
         answers: selectedAnswers,
         summary_id: summaryId,
-        user_id: 1
+        user_id: userId
       });
       setResult(response.data);
       setShowResult(true);
@@ -221,6 +217,7 @@ export default function QuizModal({ courseType, onClose }) {
     </div>
   );
 }
+
 
 
 

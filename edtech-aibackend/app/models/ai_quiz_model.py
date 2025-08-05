@@ -13,7 +13,7 @@ class AIQuiz(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     summary_id = Column(Integer, index=True)
-    user_id = Column(Integer, index=True)
+    user_id = Column(String(255), index=True)
     quiz_type = Column(Enum(QuizTypeEnum, native_enum=False), nullable=False)
     quiz_text = Column(String(1000), nullable=False)
     options = Column(JSON, nullable=False)  # ✅ 보기 저장용 JSON 컬럼 추가

@@ -14,7 +14,7 @@ class QuizResponse(BaseModel):
 class QuizSubmissionRequest(BaseModel):
     answers: Dict[str, str]  # ✅ 모든 키를 str로 받기
     summary_id: int
-    user_id: int
+    user_id: str
 
     @validator("answers", pre=True)
     def convert_keys_to_str(cls, v):
