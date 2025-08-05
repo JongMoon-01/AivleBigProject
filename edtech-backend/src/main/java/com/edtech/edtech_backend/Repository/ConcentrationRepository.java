@@ -11,4 +11,10 @@ public interface ConcentrationRepository extends JpaRepository<Concentration, Lo
 
     // ✅ 특정 강의와 사용자에 대한 집중도 데이터 전체를 타임라인 순서대로 조회
     List<Concentration> findByCourseIdAndUserIdOrderByTimelinePosition(Long courseId, Long userId);
+
+    // ✅ 특정 사용자의 모든 집중도 데이터 조회
+    List<Concentration> findByUserId(Long userId);
+
+    // ✅ 특정 강의의 모든 집중도 데이터 조회
+    List<Concentration> findByCourseId(Long courseId);
 }

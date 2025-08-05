@@ -98,4 +98,19 @@ public class ConcentrationService {
             .average()
             .orElse(0.0);
     }
+
+    // ✅ 집중도 데이터 저장 (ConcentrationController에서 사용)
+    public Concentration saveConcentration(Long courseId, Long userId, Double score, Integer timelinePosition) {
+        return recordConcentration(courseId, userId, score, timelinePosition);
+    }
+
+    // ✅ 특정 강의의 집중도 데이터 조회
+    public List<Concentration> getConcentrationsByCourse(Long courseId) {
+        return concentrationRepository.findByCourseId(courseId);
+    }
+
+    // ✅ 특정 사용자의 집중도 데이터 조회
+    public List<Concentration> getConcentrationsByUser(Long userId) {
+        return concentrationRepository.findByUserId(userId);
+    }
 }

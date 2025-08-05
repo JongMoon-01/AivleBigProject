@@ -236,3 +236,121 @@ def get_session_analytics(session_id: int, db: Session = Depends(get_db)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get session analytics: {str(e)}"
         )
+
+@router.get("/dashboard/{user_id}")
+def get_dashboard_data(user_id: int, db: Session = Depends(get_db)):
+    """대시보드용 종합 데이터"""
+    try:
+        # 사용자 존재 확인
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        # 최근 30일 데이터
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=30)
+        
+        # 기본 통계
+        total_sessions = db.query(func.count(DBSession.id)).filter(
+            and_(
+                DBSession.user_id == user_id,
+                DBSession.start_time >= start_date
+            )
+        ).scalar()
+        
+        # 점수 통계
+        score_stats = db.query(
+            func.count(Score.id),
+            func.avg(Score.emotion_score),
+            func.avg(Score.gaze_score),
+            func.avg(Score.final_score)
+        ).filter(
+            and_(
+                Score.user_id == user_id,
+                Score.timestamp >= start_date
+            )
+        ).first()
+        
+        # 최근 7일간 일별 평균 점수
+        daily_scores = db.query(
+            func.date(Score.timestamp).label('date'),
+            func.avg(Score.final_score).label('avg_score')
+        ).filter(
+            and_(
+                Score.user_id == user_id,
+                Score.timestamp >= end_date - timedelta(days=7)
+            )
+        ).group_by(func.date(Score.timestamp)).order_by(func.date(Score.timestamp)).all()
+        
+        # 등급 분포
+        grade_counts = db.query(
+            Score.grade,
+            func.count(Score.id)
+        ).filter(
+            and_(
+                Score.user_id == user_id,
+                Score.timestamp >= start_date
+            )
+        ).group_by(Score.grade).all()
+        
+        # 최고 점수와 최근 세션
+        best_score = db.query(Score).filter(
+            and_(
+                Score.user_id == user_id,
+                Score.timestamp >= start_date
+            )
+        ).order_by(desc(Score.final_score)).first()
+        
+        recent_session = db.query(DBSession).filter(
+            DBSession.user_id == user_id
+        ).order_by(desc(DBSession.start_time)).first()
+        
+        return {
+            "user_id": user_id,
+            "user_name": user.username,
+            "summary": {
+                "total_sessions": total_sessions or 0,
+                "total_scores": score_stats[0] or 0,
+                "average_final_score": round(score_stats[3] or 0.0, 3),
+                "best_score": round(best_score.final_score, 3) if best_score else 0.0
+            },
+            "detailed_averages": {
+                "emotion_score": round(score_stats[1] or 0.0, 3),
+                "gaze_score": round(score_stats[2] or 0.0, 3),
+                "final_score": round(score_stats[3] or 0.0, 3)
+            },
+            "grade_distribution": {
+                grade: count for grade, count in grade_counts
+            },
+            "daily_trend": [
+                {
+                    "date": str(date),
+                    "average_score": round(avg_score, 3)
+                }
+                for date, avg_score in daily_scores
+            ],
+            "recent_activity": {
+                "last_session": {
+                    "id": recent_session.id if recent_session else None,
+                    "name": recent_session.session_name if recent_session else None,
+                    "start_time": recent_session.start_time if recent_session else None,
+                    "duration_minutes": recent_session.duration_minutes if recent_session else None
+                } if recent_session else None,
+                "best_score_info": {
+                    "score": round(best_score.final_score, 3) if best_score else None,
+                    "grade": best_score.grade if best_score else None,
+                    "timestamp": best_score.timestamp if best_score else None
+                } if best_score else None
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get dashboard data: {str(e)}"
+        )
