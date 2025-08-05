@@ -1,61 +1,27 @@
-import re
 from typing import List
 from pathlib import Path
 
 class ContentExtractionService:
     """
-    VTT (WebVTT) 자막 파일에서 텍스트를 추출하고 처리하는 서비스
+    텍스트 파일에서 콘텐츠를 추출하고 처리하는 서비스
     
-    VTT 파일에서 타임스탬프와 메타데이터를 제거하고
-    순수 텍스트만 추출한 후, 퀴즈 생성에 적합한 크기로 취크를 분할
+    텍스트 파일을 읽어서 퀴즈 생성에 적합한 크기로 청크를 분할
     """
-    # VTT 파일 파싱용 정규식 패턴
-    TIMESTAMP_PATTERN = re.compile(r'^\d{2}:\d{2}:\d{2}\.\d{3}\s+-->\s+\d{2}:\d{2}:\d{2}\.\d{3}$')  # 타임스탬프 패턴
-    WEBVTT_HEADER = re.compile(r'^WEBVTT')  # WEBVTT 헤더 패턴
     
-    def extract_text_from_vtt(self, file_path: str) -> str:
+    def extract_text_from_txt(self, file_path: str) -> str:
         """
-        VTT 파일에서 순수 텍스트만 추출
+        텍스트 파일에서 내용을 읽어옴
         
         Args:
-            file_path (str): VTT 파일 경로
+            file_path (str): 텍스트 파일 경로
             
         Returns:
-            str: 추출된 순수 텍스트
-            
-        Process:
-            1. WEBVTT 헤더 제거
-            2. 타임스탬프 라인 제거
-            3. 빈 라인 제거
-            4. Cue ID (숫자) 제거
-            5. 순수 자막 텍스트만 수집
+            str: 파일의 전체 텍스트 내용
         """
-        content = []
-        
         with open(file_path, 'r', encoding='utf-8') as file:
-            for line in file:
-                line = line.strip()
-                
-                # WEBVTT 헤더 제거
-                if self.WEBVTT_HEADER.match(line):
-                    continue
-                
-                # 빈 라인 제거
-                if not line:
-                    continue
-                
-                # 타임스탬프 라인 제거 (00:00:00.000 --> 00:00:05.000)
-                if self.TIMESTAMP_PATTERN.match(line):
-                    continue
-                
-                # Cue ID (타임스탬프 전에 나오는 숫자) 제거
-                if line.isdigit():
-                    continue
-                
-                # 순수 자막 텍스트 추가
-                content.append(line)
+            content = file.read()
         
-        return ' '.join(content)
+        return content.strip()
     
     def chunk_text(self, text: str, max_chunk_size: int = 500) -> List[str]:
         """

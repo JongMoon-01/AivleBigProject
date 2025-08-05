@@ -19,6 +19,6 @@ class Settings:
     
     COLLECTION_NAME: str = "edtech-quiz"
     
-    VTT_DIR: str = "resources/vtt"
+    TXT_DIR: str = "resources/txt"
 
 settings = Settings()

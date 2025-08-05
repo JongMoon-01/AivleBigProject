@@ -13,7 +13,7 @@ class QuizGenerationService:
     """
     퀴즈 생성 서비스
     
-    VTT 자막 파일에서 텍스트를 추출하고, RAG 기법을 사용하여
+    텍스트 파일에서 콘텐츠를 추출하고, RAG 기법을 사용하여
     관련 콘텐츠를 검색한 후 OpenAI GPT를 활용해 퀴즈를 생성합니다.
     """
     
@@ -34,16 +34,16 @@ class QuizGenerationService:
             QuizResponse: 생성된 퀴즈 응답 객체
             
         Process:
-            1. VTT 파일에서 텍스트 추출 및 오류 수정
-            2. 수정된 콘텐츠를 벡터 DB에 저장
+            1. 텍스트 파일에서 콘텐츠 추출
+            2. 콘텐츠를 벡터 DB에 저장
             3. RAG를 사용해 관련 콘텐츠 검색
             4. GPT를 사용해 퀴즈 생성
         """
-        # 1. VTT 파일에서 텍스트 추출하고 GPT로 오류 수정
-        corrected_content = self._extract_and_correct_content(course_type)
+        # 1. 텍스트 파일에서 콘텐츠 추출
+        content = self._extract_content(course_type)
         
-        # 2. 수정된 콘텐츠를 청크로 나누어 벡터 DB에 저장
-        self._store_content_in_vector_db(course_type, corrected_content)
+        # 2. 콘텐츠를 청크로 나누어 벡터 DB에 저장
+        self._store_content_in_vector_db(course_type, content)
         
         # 3. RAG를 사용해 관련성 높은 콘텐츠 검색 (상위 3개)
         relevant_docs = self.rag_service.search_relevant_content(course_type)
@@ -62,35 +62,24 @@ class QuizGenerationService:
         
         return self._parse_quiz_response(quiz_content, course_type)
     
-    def _extract_and_correct_content(self, course_type: str) -> str:
+    def _extract_content(self, course_type: str) -> str:
         """
-        VTT 파일에서 텍스트를 추출하고 오류를 수정
+        텍스트 파일에서 콘텐츠를 추출
         
         Args:
             course_type (str): 과목 타입
             
         Returns:
-            str: 오류가 수정된 텍스트
+            str: 추출된 텍스트 내용
         """
-        # VTT 파일 경로 가져오기
-        vtt_path = self._get_vtt_path(course_type)
+        # 텍스트 파일 경로 가져오기
+        txt_path = self._get_txt_path(course_type)
         
-        # VTT 파일에서 원본 텍스트 추출
-        raw_content = self.content_service.extract_text_from_vtt(vtt_path)
+        # 텍스트 파일에서 내용 추출
+        content = self.content_service.extract_text_from_txt(txt_path)
+        logger.info(f"Content extracted for course type: {course_type}")
         
-        # GPT를 사용해 음성 인식 오류 수정
-        correction_prompt = self._create_correction_prompt(raw_content)
-        response = self.openai_client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[{"role": "user", "content": correction_prompt}],
-            temperature=0.3,  # 낮은 temperature로 일관된 수정
-            max_tokens=2000
-        )
-        
-        corrected_content = response.choices[0].message.content
-        logger.info(f"Content corrected for course type: {course_type}")
-        
-        return corrected_content
+        return content
     
     def _store_content_in_vector_db(self, course_type: str, content: str):
         """
@@ -148,43 +137,24 @@ class QuizGenerationService:
   ]
 }}"""
     
-    def _create_correction_prompt(self, content: str) -> str:
-        """
-        음성 인식 오류 수정을 위한 프롬프트 생성
-        
-        Args:
-            content (str): 원본 자막 텍스트
-            
-        Returns:
-            str: 오류 수정 요청 프롬프트
-        """
-        return f"""다음은 음성 인식으로 생성된 강의 자막입니다.
-음성 인식 오류를 수정하고, 맞춤법과 문법을 교정하여
-논리적으로 맞는 내용으로,
-원래 의미와 내용은 그대로 유지하되, 명확하게 수정해주세요.
-
-자막 내용:
-{content}
-
-교정된 내용만 반환해주세요. 추가 설명은 필요 없습니다."""
     
-    def _get_vtt_path(self, course_type: str) -> str:
+    def _get_txt_path(self, course_type: str) -> str:
         """
-        과목 타입에 따른 VTT 파일 경로 반환
+        과목 타입에 따른 텍스트 파일 경로 반환
         
         Args:
             course_type (str): 과목 타입
             
         Returns:
-            str: VTT 파일 경로
+            str: 텍스트 파일 경로
             
         Raises:
             ValueError: 알 수 없는 과목 타입인 경우
         """
         if course_type == "korean-history":
-            return f"{settings.VTT_DIR}/korean_history.vtt"
+            return f"{settings.TXT_DIR}/korean_history.txt"
         elif course_type == "linear-algebra":
-            return f"{settings.VTT_DIR}/linear_algebra.vtt"
+            return f"{settings.TXT_DIR}/linear_algebra.txt"
         else:
             raise ValueError(f"Unknown course type: {course_type}")
     

@@ -91,7 +91,7 @@ class RAGService:
             metadatas.append({
                 "course_type": course_type,
                 "chunk_id": i,
-                "source": "vtt_subtitle"
+                "source": "txt_file"
             })
         
         # ChromaDB에 일괄 저장
