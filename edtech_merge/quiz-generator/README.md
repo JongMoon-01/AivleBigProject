@@ -1,6 +1,6 @@
 # Quiz Generator API
 
-RAG 기반 퀴즈 생성 시스템 (FastAPI + ChromaDB + OpenAI)
+RAG 기반 퀴즈 생성 시스템 (Python FastAPI + ChromaDB + OpenAI)
 
 ## 개요
 
