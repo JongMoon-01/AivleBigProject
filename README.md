@@ -135,25 +135,7 @@ Invoke-WebRequest -Uri http://localhost:8081/generate-quiz/1/user123 -Method POS
 Invoke-WebRequest -Uri http://localhost:8081/quiz/1
 ```
 
----
 
-## 📅 수정 글로그
-
-* ✅ RAG (경로적 요약)을 Summary에 적용
-* ✅ 더미 Summary 테이블 → RAG 저장 → 퀴즈 생성
-* ✅ ChromaDB, OpenAI Embedding 가운데
-
----
-
-## 📅 추가 예정
-
-* [ ] 테스트 코드 자동화
-* [ ] RAG 기반 사용자 질문 응답 회신
-* [ ] FastAPI → Swagger UI 안전 고도화
-
----
-
-✅ 이 README는 `RAG 통합 테스트` 기준으로 갱신되었습니다.
 
 
 
