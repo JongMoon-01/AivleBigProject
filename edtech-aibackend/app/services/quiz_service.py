@@ -5,6 +5,8 @@ from openai import OpenAI
 from sqlalchemy.orm import Session
 from app.models.ai_quiz_model import AIQuiz, QuizTypeEnum
 from app.models.summary_model import Summary  # Summary 테이블 불러오기
+from app.services.rag_service import RAGService
+from app.services.text_chunker import split_into_chunks  # (미사용 시 삭제 가능)
 
 # 환경 변수 로드 및 OpenAI 클라이언트 설정
 load_dotenv()
@@ -14,6 +16,7 @@ openai = OpenAI(api_key=api_key)
 def generate_quiz_from_summary(summary_id: int, user_id: str, db: Session):
     """
     Summary 테이블에서 content를 가져와 퀴즈 생성 후 AIQuiz에 저장
+    - RAG 기반으로 관련 내용 검색하여 퀴즈 생성
 
     Parameters:
     - summary_id (int): 요약 데이터 ID
@@ -27,9 +30,24 @@ def generate_quiz_from_summary(summary_id: int, user_id: str, db: Session):
     if not summary:
         return [{"error": "Summary not found"}]
 
-    content_text = summary.content.strip()
+    # ✅ RAG 검색을 위한 course_type 정의
+    course_type = f"summary_{summary_id}"
+    rag_service = RAGService()
 
-    # ✅ 퀴즈 5개 생성으로 수정
+    # ✅ RAG로 관련 청크 검색
+    relevant_docs = rag_service.search_relevant_content(
+        course_type=course_type,
+        query="이 강의 내용을 바탕으로 퀴즈를 만들고 싶어",
+        n_results=3
+    )
+
+    if not relevant_docs:
+        return [{"error": "RAG 검색 실패"}]
+
+    # ✅ 검색된 청크 합치기
+    context_text = " ".join([doc['content'] for doc in relevant_docs])
+
+    # ✅ GPT Prompt 구성
     prompt = f"""
     다음 내용을 바탕으로 총 5개의 퀴즈를 만들어줘.
     - O/X 문제 2개
@@ -58,8 +76,8 @@ def generate_quiz_from_summary(summary_id: int, user_id: str, db: Session):
       }}
     ]
 
-    요약 내용:
-    {content_text}
+    강의 요약 내용:
+    {context_text}
     """
 
     try:
@@ -75,12 +93,11 @@ def generate_quiz_from_summary(summary_id: int, user_id: str, db: Session):
         try:
             quiz_list_raw = json.loads(gpt_reply)
 
-            # ✅ 퀴즈 수 최소 5개 확인
             if len(quiz_list_raw) < 5:
                 print(f"❗퀴즈 수 부족: {len(quiz_list_raw)}개 생성됨")
                 return [{"error": f"퀴즈 5개 생성 실패 (현재 {len(quiz_list_raw)}개)", "raw_response": gpt_reply}]
 
-            quiz_list_raw = quiz_list_raw[:5]  # 초과 시 5개로 자르기
+            quiz_list_raw = quiz_list_raw[:5]
 
             saved_quizzes = []
 
@@ -123,6 +140,7 @@ def generate_quiz_from_summary(summary_id: int, user_id: str, db: Session):
     except Exception as e:
         print("❗OpenAI 오류:", e)
         return [{"error": "퀴즈 생성 실패", "details": str(e)}]
+
 
 
 
