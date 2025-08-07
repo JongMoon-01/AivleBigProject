@@ -9,7 +9,9 @@ import HomePage from "./pages/HomePage";
 import ClassDetailPage from "./pages/ClassDetailPage";
 import CourseListPage from "./pages/CourseListPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
+import CourseContentPage from "./pages/CourseContentPage";
 import LectureSummaryPage from "./pages/LectureSummaryPage";
+import StudentsPage from "./pages/StudentsPage";
 
 export default function App() {
   return (
@@ -22,10 +24,17 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/excel" element={<ExcelViewerPage />} />
             <Route path="/" element={<HomePage />} />
-            <Route path="/class/:id" element={<ClassDetailPage />} />
-            <Route path="/class/courses" element={<CourseListPage />} />
-            <Route path="/class/courses/course1/schedule" element={<CourseDetailPage />}/>
-            <Route path="/class/courses/:courseId/summary" element={<LectureSummaryPage />} />
+
+            {/* 수강생 조회(관리자) */}
+            <Route path="/class/:classId/students" element={<StudentsPage />} />
+            {/* 본인 수업 태도 조회(학생) */}
+            <Route path="/class/:classId/courses/:courseId/MyAttitude" element={<MainDashboard/>} />
+            <Route path="/class/:classId" element={<ClassDetailPage />} />
+            <Route path="/class/:classId/courses" element={<CourseListPage />} />
+            <Route path="/class/:classId/courses/:courseId/schedule" element={<CourseDetailPage />} />
+            <Route path="/class/:classId/courses/:courseId/content" element={<CourseContentPage />} />
+            <Route path="/class/:classId/courses/:courseId/summary" element={<LectureSummaryPage />} />
+            <Route path="/class/:classId/courses/:courseId/resources" element={<CourseDetailPage />} />
           </Routes>
         </main>
         <Footer />

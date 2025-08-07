@@ -1,13 +1,13 @@
 import { NavLink, useParams } from "react-router-dom";
 
 export default function CourseSidebar() {
-  const { courseId } = useParams();
+  const { classId, courseId } = useParams();
 
   const menu = [
-    { name: "수업 일정", path: `/class/courses/${courseId}/schedule` },
-    { name: "강의 콘텐츠", path: `/class/courses/${courseId}/content` },
-    { name: "Lecture Summary", path: `/class/courses/${courseId}/summary` },
-    { name: "강의 자료실", path: `/class/courses/${courseId}/resources` },
+    { name: "수업 일정", path: `/class/${classId}/courses/${courseId}/schedule` },
+    { name: "강의 콘텐츠", path: `/class/${classId}/courses/${courseId}/content` },
+    { name: "Lecture Summary", path: `/class/${classId}/courses/${courseId}/summary` },
+    { name: "강의 자료실", path: `/class/${classId}/courses/${courseId}/resources` },
   ];
 
   return (
