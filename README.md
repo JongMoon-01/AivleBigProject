@@ -69,8 +69,8 @@ uvicorn main:app --reload
 | 주간 집중도 변화 | `AdminWeeklyFocusChart.js` | 주별 평균 집중도 + 학생별 비교 |
 | 응답시간 분포 | `AdminResponseHistogram.js` | 유저 응답 시간 정규분포 시각화 |
 | 시험 점수 정규분포 | `AdminTestScoreChart.js` | 점수 기반 정규분포 그래프 |
-| 출석률 라인 차트 | `AdminAttendanceLineChart.js` | 회차별 출석률 시각화 |
-| 복습률 카드 | `AdminReviewRateCard.js` | 복습률 KPI 카드 |
+| 출석률 라인 차트 | `AdminAttendanceLineChart.js` | 평균 출석률 시각화 |
+| 복습률 라인 차트 | `AdminReviewRateCard.js` | 평균 복습률 시각화 |
 | 집중률 라인 차트 | `AdminFocusLineChart.js` | 평균 집중률 시각화 |
 | Mini 요약 차트 | `MiniChart.js` | KPI 카드형 미니 차트 |
 
@@ -85,5 +85,5 @@ uvicorn main:app --reload
 
 ## 📌 기타
 
-- 프로젝트는 학습용 대시보드 시각화 연습을 목적으로 제작되었습니다.
+- 프로젝트는 관리자 대시보드 구현을 목적으로로 제작되었습니다.
 - 모든 데이터는 더미 데이터 기반으로 구성되어 있습니다.
