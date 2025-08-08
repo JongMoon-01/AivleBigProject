@@ -162,7 +162,36 @@ export default function AdminResponseHistogram({ courseId }) {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="x" domain={[0, 18]} type="number" tickFormatter={(v) => Math.round(v)} />
                 <YAxis hide domain={[0, 'auto']} />
-                <Tooltip labelFormatter={(label) => `응답시간: ${Math.round(label)}초`} />
+                <Tooltip
+                  formatter={(value, name, props) => {
+                    if (!selectedRound) return ["", ""];
+
+                    const totalCount = students.length;
+
+                    // 해당 점수 ±0.5에 위치한 학생
+                    const matchedStudents = students.filter((s) => {
+                      const score = s.responseHistory?.[selectedRound.index];
+                      return score != null && Math.abs(score - props.payload.x) <= 0.5;
+                    });
+
+                    const names = matchedStudents.map((s) => s.name);
+                    const count = matchedStudents.length;
+                    const percent = ((count / totalCount) * 100).toFixed(0); // 👉 정비례 백분율
+
+                    const maxDisplay = 5;
+                    const nameList = names.slice(0, maxDisplay).join(", ");
+                    const nameText =
+                      names.length > maxDisplay
+                        ? `${nameList} 외 ${names.length - maxDisplay}명`
+                        : nameList || "해당 없음";
+
+                    return [
+                      <span style={{ color: "blue", fontWeight: "bold" }}>{percent}%</span>, // ✅ 퍼센트 출력
+                      nameText,
+                    ];
+                  }}
+                  labelFormatter={(label) => `응답시간: ${Math.round(label)}초`}
+                />
                 <defs>
                   <linearGradient id="yellowGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#FFB300" stopOpacity={0.6} />
