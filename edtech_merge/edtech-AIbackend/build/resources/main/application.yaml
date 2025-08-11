@@ -7,7 +7,7 @@ server:
 
 openai:
   api:
-    key: ${OPENAI_API_KEY}
+    key: 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
     model: gpt-3.5-turbo
     max-tokens: 1000
     temperature: 0.7
