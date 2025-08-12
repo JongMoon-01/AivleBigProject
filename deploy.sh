@@ -65,6 +65,14 @@ az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER_NAME
 print_message "Logging into Azure Container Registry..."
 az acr login --name $ACR_NAME
 
+print_message "Ensuring AKS can pull from ACR (attach ACR)..."
+set +e
+az aks update -n $AKS_CLUSTER_NAME -g $RESOURCE_GROUP --attach-acr $ACR_NAME >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    print_warning "Could not attach ACR to AKS automatically. It may already be attached or you may lack permissions. Continuing..."
+fi
+set -e
+
 # Build and push Docker images
 print_message "Building and pushing Docker images..."
 
@@ -139,29 +147,31 @@ print_message "Pods Status:"
 kubectl get pods
 
 echo ""
-print_message "Getting External IPs (this may take a few minutes)..."
+print_message "Getting External IP (this may take a few minutes)..."
 echo ""
 
-# Wait for external IPs
+# Wait for frontend external IP only (backend is ClusterIP and reachable via frontend proxy)
 for i in {1..30}; do
-    FRONTEND_IP=$(kubectl get service frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "pending")
-    QUIZ_IP=$(kubectl get service quiz-generator-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "pending")
-    
-    if [ "$FRONTEND_IP" != "pending" ] && [ "$QUIZ_IP" != "pending" ] && [ -n "$FRONTEND_IP" ] && [ -n "$QUIZ_IP" ]; then
+    FRONTEND_IP=$(kubectl get service frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
+    FRONTEND_HOSTNAME=$(kubectl get service frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
+    if [ -n "$FRONTEND_IP" ] || [ -n "$FRONTEND_HOSTNAME" ]; then
         break
     fi
-    
-    echo -ne "\rWaiting for external IPs... ($i/30)"
+    echo -ne "\rWaiting for frontend external IP... ($i/30)"
     sleep 10
 done
 
 echo ""
 echo ""
 echo "========================================"
-echo "Access URLs:"
+echo "Access URL:"
 echo "========================================"
-echo "Frontend: http://${FRONTEND_IP}"
-echo "Quiz Generator API: http://${QUIZ_IP}"
+if [ -n "$FRONTEND_IP" ]; then
+  echo "Frontend: http://${FRONTEND_IP}"
+else
+  echo "Frontend: http://${FRONTEND_HOSTNAME}"
+fi
+echo "(Backend is internal: accessed via /api proxy from the frontend)"
 echo ""
 echo "========================================"
 

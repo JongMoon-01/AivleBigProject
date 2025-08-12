@@ -18,7 +18,7 @@ export default function QuizModal({ courseType, onClose }) {
         setLoading(true);
         setError(null);
         const response = await axios.post(
-          `http://localhost:8082/api/quiz/${courseType}`,
+          `/api/quiz/${courseType}`,
           {},
           { signal: abortController.signal }
         );
@@ -61,7 +61,7 @@ export default function QuizModal({ courseType, onClose }) {
 
   const handleSubmit = async () => {
     try {
-      const response = await axios.post('http://localhost:8082/api/quiz/submit', {
+      const response = await axios.post('/api/quiz/submit', {
         answers: selectedAnswers,
         courseType: courseType
       });

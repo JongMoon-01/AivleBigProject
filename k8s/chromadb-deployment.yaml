@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: chromadb
-  namespace: default
+  namespace: edtech
   labels:
     app: chromadb
     component: vectordb
