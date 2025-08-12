@@ -1,0 +1,13 @@
+# Persistent Volume Claim for ChromaDB data storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chroma-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce  # Single node read-write access
+  storageClassName: managed-premium  # Azure Premium SSD
+  resources:
+    requests:
+      storage: 32Gi  # 32GB storage for vector embeddings
