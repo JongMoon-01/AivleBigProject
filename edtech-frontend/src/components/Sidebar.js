@@ -12,6 +12,7 @@ export default function Sidebar() {
   const { classId } = useParams();
   const [courses, setCourses] = useState([]);
   const isAdmin = getAuth()?.role === "ADMIN";
+  const isStudent = getAuth()?.role === "STUDENT";
 
   useEffect(() => {
     if (!classId) return;
@@ -72,13 +73,19 @@ export default function Sidebar() {
         수강생 조회
         </Link>
       )}
-
+      {isAdmin && (
+      <Link to={`/class/${classId}/adminDashboard`} className="text-sm text-indigo-600 hover:underline font-medium">
+        관리자 대쉬보드
+        </Link>
+      )}
+      {isStudent && (
       <Link
-        to={`/class/${classId}/attitude`}
+        to={`/class/${classId}/MyAttitude`}
         className="text-sm text-indigo-600 hover:underline font-medium"
       >
         내 수업태도 살펴보기 →
       </Link>
+      )}
     </aside>
   );
 }

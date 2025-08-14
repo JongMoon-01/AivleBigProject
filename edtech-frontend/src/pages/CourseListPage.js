@@ -5,6 +5,8 @@ import CourseCreateModal from "../components/CourseCreateModal";
 import { getAuth } from "../utils/auth";
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import QuizModal from "../components/QuizModal";
+import ConfirmModal from "../components/ConfirmModal";
 
 export default function CourseListPage() {
   const { classId } = useParams();
@@ -13,6 +15,35 @@ export default function CourseListPage() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const isAdmin = getAuth()?.role === "ADMIN";
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);   // 현재 삭제 중인 코스
+  const [confirm, setConfirm] = useState({ open:false, id:null, title:'' }); // 확인 모달
+  
+
+  const handleGenerateQuiz = (clsId, crsId) => {
+  if (!crsId) {
+    alert("코스 ID가 없습니다.");
+    return;
+  }
+  setSelectedCourseId(crsId);
+  setShowQuizModal(true);
+  };
+
+  const deleteCourse = async (courseId) => {
+    try {
+      setDeletingId(courseId);
+      await api.delete(`/classes/${classId}/courses/${courseId}`);
+      // 낙관적 업데이트
+      setCourses(prev => prev.filter(c => (c.courseId ?? c.id) !== courseId));
+    } catch (e) {
+      console.error("[CourseList] delete error:", e);
+      alert("삭제에 실패했습니다.");
+    } finally {
+      setDeletingId(null);
+      setConfirm({ open:false, id:null, title:'' });
+    }
+  };
 
   const load = useCallback(async () => {
     if (!classId) return;
@@ -109,25 +140,56 @@ export default function CourseListPage() {
                         </span>
                       ))}
                     </td>
-                    <td className="px-4 py-3 text-right space-x-2">
-  <button
-    className="bg-indigo-600 text-white text-xs px-3 py-1 rounded hover:bg-indigo-700"
-    onClick={() =>
-      navigate(`/class/${classId}/courses/${c.courseId ?? c.id}/schedule`)
-    }
-  >
-    강의 바로가기 →
-  </button>
-
-  {c.quizType && (
+                    <td className="px-4 py-3">
+  <div className="flex justify-end items-center gap-2">
     <button
-      className="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-700"
-      onClick={() => alert(`퀴즈 타입: ${c.quizType}`)}
+      type="button"
+      className="bg-indigo-600 text-white text-xs px-3 py-1 rounded hover:bg-indigo-700"
+      onClick={(e) => {
+        e.stopPropagation();
+        console.log('[GOTO]', c.courseId ?? c.id);
+        navigate(`/class/${classId}/courses/${c.courseId ?? c.id}/schedule`);
+      }}
     >
-      퀴즈 풀어보자 →
+      강의 바로가기 →
     </button>
-  )}
+
+    <button
+  type="button"
+  className="text-xs px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleGenerateQuiz(classId, c.courseId ?? c.id);
+  }}
+>
+  퀴즈 풀어보자 →
+</button>
+
+    {isAdmin && (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          console.log('[DELETE CLICK]', c.courseId ?? c.id, c.title);
+          setConfirm({
+            open: true,
+            id: (c.courseId ?? c.id),
+            title: c.title || ''
+          });
+        }}
+        disabled={deletingId === (c.courseId ?? c.id)}
+        className={`text-xs px-3 py-1 rounded
+          ${deletingId === (c.courseId ?? c.id)
+            ? "bg-red-300 text-white cursor-not-allowed"
+            : "bg-red-600 text-white hover:bg-red-700"}`}
+        title="이 강의를 삭제합니다"
+      >
+        {deletingId === (c.courseId ?? c.id) ? "삭제 중…" : "삭제"}
+      </button>
+    )}
+  </div>
 </td>
+
                   </tr>
                 ))}
             </tbody>
@@ -141,6 +203,24 @@ export default function CourseListPage() {
             onCreated={load}
           />
         )}
+        {showQuizModal && (
+  <QuizModal
+    classId={classId}
+    courseId={selectedCourseId}
+    onClose={() => setShowQuizModal(false)}
+  />
+)}
+<ConfirmModal
+  open={confirm.open}
+  title="강의 삭제"
+  message={`‘${confirm.title}’ 강의를 정말 삭제할까요? 이 작업은 되돌릴 수 없습니다.`}
+  confirmText="삭제"
+  cancelText="취소"
+  danger
+  loading={deletingId !== null}
+  onCancel={() => setConfirm({ open:false, id:null, title:"" })}
+  onConfirm={() => deleteCourse(confirm.id)}
+/>
       </main>
     </div>
   );

@@ -1,111 +1,94 @@
-import chromadb
-from chromadb.config import Settings as ChromaSettings
-from openai import OpenAI
+# app/services/rag_service.py
+from dataclasses import dataclass
 from typing import List, Dict
-import logging
-from app.config import settings
+import hashlib, os, json
 
-logger = logging.getLogger(__name__)
+from app.services.vectordb_chroma import ChromaVectorDB   # ⬅️ 변경
+from .text_proc import extract_keyphrases, mmr_select
+from .rerank import identity_rerank
+
+@dataclass
+class RagConfig:
+    top_k_vec: int = 12
+    top_k_bm25: int = 12
+    final_k_rerank: int = 20
+    out_k: int = 8
+    index_dir: str = os.environ.get("RAG_INDEX_DIR", "./_rag_index")
+    chroma_dir: str = os.environ.get("CHROMA_DIR", "./_chroma")   # ⬅️ 추가
+
+def _hash_text(txt: str) -> str:
+    import hashlib
+    return hashlib.sha256(txt.encode("utf-8")).hexdigest()
 
 class RAGService:
-    """
-    RAG (Retrieval-Augmented Generation) 서비스
-    
-    ChromaDB 벡터 데이터베이스와 OpenAI 임베딩을 사용하여
-    텍스트 청크를 벡터로 변환하고 저장·검색하는 서비스
-    """
-    def __init__(self):
-        self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
-
-        # ChromaDB HTTP 클라이언트 설정
-        self.chroma_client = chromadb.HttpClient(
-            host=settings.CHROMADB_HOST,
-            port=settings.CHROMADB_PORT,
-            settings=ChromaSettings(anonymized_telemetry=False)
+    def __init__(self, config: RagConfig = RagConfig()):
+        self.cfg = config
+        os.makedirs(self.cfg.index_dir, exist_ok=True)
+        os.makedirs(self.cfg.chroma_dir, exist_ok=True)
+        self.db = ChromaVectorDB(
+            persist_dir=self.cfg.chroma_dir,
+            bm25_dir=self.cfg.index_dir
         )
 
-        # 컬렉션 가져오기 또는 새로 생성
-        try:
-            self.collection = self.chroma_client.get_collection(name=settings.COLLECTION_NAME)
-        except:
-            self.collection = self.chroma_client.create_collection(
-                name=settings.COLLECTION_NAME,
-                metadata={"hnsw:space": "cosine"}
-            )
+    def _status_path(self, lecture_id: int) -> str:
+        return os.path.join(self.cfg.index_dir, f"{lecture_id}.status.json")
 
-    def get_embedding(self, text: str) -> List[float]:
-        """
-        텍스트를 OpenAI 임베딩 벡터로 변환
-        """
-        response = self.openai_client.embeddings.create(
-            model=settings.OPENAI_EMBEDDING_MODEL,
-            input=text
-        )
-        return response.data[0].embedding
+    def ensure_indexed(self, lecture_id: int, captions: List[Dict]):
+        text_all = "\n".join(c["text"] for c in captions)
+        h = _hash_text(text_all)
+        p = self._status_path(lecture_id)
+        if os.path.exists(p):
+            try:
+                cur = json.load(open(p, "r", encoding="utf-8"))
+                if cur.get("hash") == h:
+                    return  # up-to-date
+            except:
+                pass
 
-    def store_documents(self, course_type: str, chunks: List[str]):
-        """
-        텍스트 청크들을 벡터화하여 ChromaDB에 저장
-        """
-        existing = self.collection.get(
-            where={"course_type": course_type},
-            limit=1
-        )
-
-        if existing['ids']:
-            logger.info(f"Documents already exist for course: {course_type}")
-            return
-
-        ids = []
-        embeddings = []
-        metadatas = []
-        documents = []
-
-        for i, chunk in enumerate(chunks):
-            doc_id = f"{course_type}_chunk_{i}"
-            embedding = self.get_embedding(chunk)
-
-            ids.append(doc_id)
-            embeddings.append(embedding)
-            documents.append(chunk)
-            metadatas.append({
-                "course_type": course_type,
-                "chunk_id": i,
-                "source": "summary_content"
+        chunks = []
+        for i, c in enumerate(captions):
+            chunks.append({
+                "chunk_id": f"{lecture_id}-{i}",
+                "text": c["text"],
+                "start_ms": int(c["start_ms"]),
+                "end_ms": int(c["end_ms"]),
             })
+        self.db.upsert_chunks(str(lecture_id), chunks)
+        json.dump({"hash": h}, open(p, "w", encoding="utf-8"))
 
-        self.collection.add(
-            ids=ids,
-            embeddings=embeddings,
-            documents=documents,
-            metadatas=metadatas
-        )
+    def retrieve_for_quiz(self, lecture_id: int, anchor_text: str) -> List[Dict]:
+        queries = extract_keyphrases(anchor_text, topn=5) or [anchor_text]
 
-        logger.info(f"Stored {len(chunks)} chunks for course: {course_type}")
+        vec_hits = []
+        for q in queries:
+            vec_hits.extend(self.db.search_vector(str(lecture_id), q, top_k=self.cfg.top_k_vec))
+        bm_hits = self.db.search_bm25(str(lecture_id), " ".join(queries), top_k=self.cfg.top_k_bm25)
 
-    def search_relevant_content(self, course_type: str, query: str = None, n_results: int = 3) -> List[Dict]:
-        """
-        course_type에 따라 관련 콘텐츠를 벡터 유사도 검색
-        """
-        if not query:
-            query = f"{course_type} 관련 강의 내용"
+        fused = rrf_fuse(vec_hits, bm_hits)
+        fused = dedup_by_chunk_id(fused)
 
-        query_embedding = self.get_embedding(query)
+        reranked = identity_rerank(anchor_text, fused)[: self.cfg.final_k_rerank]
+        return mmr_select(reranked, k=self.cfg.out_k, lambda_diversity=0.5)
 
-        results = self.collection.query(
-            query_embeddings=[query_embedding],
-            where={"course_type": course_type},
-            n_results=n_results
-        )
+def rrf_fuse(a: List[Dict], b: List[Dict], k: float = 60.0) -> List[Dict]:
+    scores = {}
+    for lst in (a, b):
+        for rank, item in enumerate(lst, start=1):
+            cid = item["chunk"]["chunk_id"]
+            scores[cid] = scores.get(cid, 0.0) + 1.0 / (k + rank)
+    cache = {}
+    for item in (a + b):
+        cache[item["chunk"]["chunk_id"]] = item["chunk"]
+    merged = [{"chunk": cache[cid], "score": sc} for cid, sc in scores.items()]
+    merged.sort(key=lambda x: x["score"], reverse=True)
+    return merged
 
-        relevant_docs = []
-        if results['documents'] and results['documents'][0]:
-            for i, doc in enumerate(results['documents'][0]):
-                relevant_docs.append({
-                    'content': doc,
-                    'metadata': results['metadatas'][0][i] if results['metadatas'] else {},
-                    'distance': results['distances'][0][i] if results['distances'] else 0
-                })
-
-        logger.info(f"Found {len(relevant_docs)} relevant documents for course: {course_type}")
-        return relevant_docs
+def dedup_by_chunk_id(items: List[Dict]) -> List[Dict]:
+    seen = set()
+    out = []
+    for it in items:
+        cid = it["chunk"]["chunk_id"]
+        if cid in seen: continue
+        seen.add(cid)
+        out.append(it)
+    return out

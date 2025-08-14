@@ -1,150 +1,84 @@
-import os
+# app/services/quiz_service.py
 import json
-from dotenv import load_dotenv
+from typing import List, Dict
+from dotenv import load_dotenv 
 from openai import OpenAI
-from sqlalchemy.orm import Session
-from app.models.ai_quiz_model import AIQuiz, QuizTypeEnum
-from app.models.summary_model import Summary  # Summary 테이블 불러오기
-from app.services.rag_service import RAGService
-from app.services.text_chunker import split_into_chunks  # (미사용 시 삭제 가능)
+from app.models.schema import LlmQuizRequest
+from app.services.vtt_utils import parse_vtt, slice_by_intervals, Caption
+from app.services.quiz_quality import filter_valid
 
-# 환경 변수 로드 및 OpenAI 클라이언트 설정
+
+# ✅ .env 먼저 로드
 load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
-openai = OpenAI(api_key=api_key)
 
-def generate_quiz_from_summary(summary_id: int, user_id: str, db: Session):
-    """
-    Summary 테이블에서 content를 가져와 퀴즈 생성 후 AIQuiz에 저장
-    - RAG 기반으로 관련 내용 검색하여 퀴즈 생성
+client = OpenAI()
 
-    Parameters:
-    - summary_id (int): 요약 데이터 ID
-    - user_id (str): 사용자 ID
-    - db (Session): DB 세션
+SYSTEM_MSG = (
+    "너는 교육용 퀴즈 출제기다. 제공된 컨텍스트(자막)에서만 출제하고 외부지식 사용 금지. "
+    "모든 문항에 evidence(자막 타임코드)를 포함한다. 출력은 JSON 배열만."
+)
 
-    Returns:
-    - List[Dict]: 생성된 퀴즈 리스트 또는 에러 정보
-    """
-    summary = db.query(Summary).filter(Summary.summary_id == summary_id, Summary.user_id == user_id).first()
-    if not summary:
-        return [{"error": "Summary not found"}]
+USER_TMPL = """\
+[컨텍스트]
+아래는 강의 자막 일부다. 각 행의 형식은 (start_ms,end_ms) text 이다.
 
-    # ✅ RAG 검색을 위한 course_type 정의
-    course_type = f"summary_{summary_id}"
-    rag_service = RAGService()
+{context}
 
-    # ✅ RAG로 관련 청크 검색
-    relevant_docs = rag_service.search_relevant_content(
-        course_type=course_type,
-        query="이 강의 내용을 바탕으로 퀴즈를 만들고 싶어",
-        n_results=3
-    )
+[요구사항]
+- 총 5문항: OX 2개, 4지선다 3개
+- 보기/정답은 컨텍스트에서 파생(동의어/패러프레이즈 가능, 날조 금지)
+- 모호/상식 문제 금지. 명시된 사실/정의/수치/절차에 근거
+- 각 문항에 evidence: [{{"start_ms":..., "end_ms":...}}] 최소 1개 포함
+- JSON 스키마:
+[
+  {{
+    "type": "MCQ" | "OX",
+    "question": "....",
+    "options": [{{"label":"A","text":"..."}}, ...],  // OX는 O/X 두 개
+    "answer": "A" | "B" | "C" | "D" | "O" | "X",
+    "evidence": [{{"start_ms":12345,"end_ms":15678}}]
+  }}, ...
+]
+- 한글로 작성.
+"""
 
-    if not relevant_docs:
-        return [{"error": "RAG 검색 실패"}]
+def _build_context(caps: List[Caption]) -> str:
+    return "\n".join(f"- ({c.start_ms},{c.end_ms}) {c.text}" for c in caps)
 
-    # ✅ 검색된 청크 합치기
-    context_text = " ".join([doc['content'] for doc in relevant_docs])
-
-    # ✅ GPT Prompt 구성
-    prompt = f"""
-    다음 내용을 바탕으로 총 5개의 퀴즈를 만들어줘.
-    - O/X 문제 2개
-    - 객관식 4지선다형 문제 3개
-    - 모든 보기는 실제 텍스트로 채워줘.
-    - 아래 JSON 형식으로만 출력하고 다른 말은 하지마:
-
-    [
-      {{
-        "question": "문제 내용",
-        "options": [
-          {{ "label": "A", "text": "보기 내용1" }},
-          {{ "label": "B", "text": "보기 내용2" }},
-          {{ "label": "C", "text": "보기 내용3" }},
-          {{ "label": "D", "text": "보기 내용4" }}
-        ],
-        "answer": "A"
-      }},
-      {{
-        "question": "문제 내용",
-        "options": [
-          {{ "label": "O", "text": "맞다" }},
-          {{ "label": "X", "text": "틀리다" }}
-        ],
-        "answer": "O"
-      }}
+def _call_llm(context_caps: List[Caption]) -> List[Dict]:
+    ctx = _build_context(context_caps)
+    messages = [
+        {"role":"system","content": SYSTEM_MSG},
+        {"role":"user","content": USER_TMPL.format(context=ctx)},
     ]
+    resp = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=messages,
+        temperature=0.2,
+        top_p=0.9
+    )
+    raw = resp.choices[0].message.content
+    return json.loads(raw)
 
-    강의 요약 내용:
-    {context_text}
-    """
+def generate_from_intervals(req: LlmQuizRequest) -> List[Dict]:
+    if not req.intervals:
+        return []
 
-    try:
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
-        )
+    caps = parse_vtt(req.vttText)
+    intervals = [(i.start, i.end) for i in req.intervals]
+    ctx_caps = slice_by_intervals(caps, intervals, pad_ms=15000, max_chars=6000)
+    if not ctx_caps:
+        return []
 
-        gpt_reply = response.choices[0].message.content
-        print("🔍 GPT 응답:", gpt_reply)
+    # 1차 생성 + 검증
+    items = _call_llm(ctx_caps)
+    valid = filter_valid(items, ctx_caps)
 
-        try:
-            quiz_list_raw = json.loads(gpt_reply)
+    # 부족하면 간단 재시도
+    tries = 0
+    while len(valid) < 5 and tries < 2:
+        more = _call_llm(ctx_caps)
+        valid = filter_valid(valid + more, ctx_caps)
+        tries += 1
 
-            if len(quiz_list_raw) < 5:
-                print(f"❗퀴즈 수 부족: {len(quiz_list_raw)}개 생성됨")
-                return [{"error": f"퀴즈 5개 생성 실패 (현재 {len(quiz_list_raw)}개)", "raw_response": gpt_reply}]
-
-            quiz_list_raw = quiz_list_raw[:5]
-
-            saved_quizzes = []
-
-            for quiz in quiz_list_raw:
-                question = quiz.get("question", "").strip()
-                options = quiz.get("options", [])
-                answer = quiz.get("answer", "").strip()
-
-                labels = [opt["label"] for opt in options]
-                if labels == ["O", "X"]:
-                    quiz_type = QuizTypeEnum.OX
-                else:
-                    quiz_type = QuizTypeEnum.MCQ
-
-                new_quiz = AIQuiz(
-                    summary_id=summary_id,
-                    user_id=user_id,
-                    quiz_type=quiz_type,
-                    quiz_text=question,
-                    answer=answer,
-                    options=options
-                )
-                db.add(new_quiz)
-                db.flush()
-
-                saved_quizzes.append({
-                    "quiz_id": new_quiz.id,
-                    "question": question,
-                    "options": options,
-                    "answer": answer
-                })
-
-            db.commit()
-            return saved_quizzes
-
-        except json.JSONDecodeError as json_err:
-            print("❗JSON 파싱 실패:", json_err)
-            return [{"error": "JSON 파싱 실패", "raw_response": gpt_reply}]
-
-    except Exception as e:
-        print("❗OpenAI 오류:", e)
-        return [{"error": "퀴즈 생성 실패", "details": str(e)}]
-
-
-
-
-
-
-
-
+    return valid[:5]

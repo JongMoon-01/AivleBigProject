@@ -18,6 +18,10 @@ public class Course {
     private String tag;
     private String instructor;
 
+    @OneToOne
+    @JoinColumn(name = "lecture_id", unique = true)
+    private Lecture lecture;
+    
     @ManyToOne
     @JoinColumn(name = "class_id")
     private ClassEntity classEntity;

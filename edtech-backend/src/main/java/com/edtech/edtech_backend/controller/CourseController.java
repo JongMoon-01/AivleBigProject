@@ -6,10 +6,11 @@ import com.edtech.edtech_backend.dto.CourseSummaryDto;
 import com.edtech.edtech_backend.dto.StudentSummaryDto;
 import com.edtech.edtech_backend.entity.ClassEntity;
 import com.edtech.edtech_backend.entity.Course;
-import com.edtech.edtech_backend.entity.Enrollment;
 import com.edtech.edtech_backend.repository.ClassRepository;
 import com.edtech.edtech_backend.repository.CourseRepository;
 import com.edtech.edtech_backend.repository.EnrollmentRepository;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -69,5 +70,19 @@ public class CourseController {
                         e.getCreatedAt() != null ? e.getCreatedAt().format(F) : ""
                 ))
                 .toList();
+    }
+    @PreAuthorize("hasRole('ADMIN')") // 또는 hasAuthority("ADMIN") 
+    @DeleteMapping("/courses/{courseId}")
+    @Transactional
+    public ResponseEntity<Void> deleteCourse(
+        @PathVariable Long classId,
+        @PathVariable Long courseId
+    ) {
+    var course = courseRepository
+            .findByCourseIdAndClassEntity_ClassId(courseId, classId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "course not found"));
+
+    courseRepository.delete(course);
+    return ResponseEntity.noContent().build(); // 204
     }
 }

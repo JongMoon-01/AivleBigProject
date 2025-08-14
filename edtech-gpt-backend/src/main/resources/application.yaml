@@ -12,7 +12,7 @@ spring:
 
 # (선택) GPT API 설정
 gpt:
-  api-key: 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
+  api-key: sk-
   model: gpt-3.5-turbo
   temperature: 0.7
   max-tokens: 1024

@@ -12,6 +12,10 @@ import CourseDetailPage from "./pages/CourseDetailPage";
 import CourseContentPage from "./pages/CourseContentPage";
 import LectureSummaryPage from "./pages/LectureSummaryPage";
 import StudentsPage from "./pages/StudentsPage";
+import MainDashboard from "./pages/MainDashboard";
+import AdminDashboard from "./pages/admin/AdminHomePage"
+import AdminKpiPage from "./pages/admin/AdminKpiPage";
+import AdminKpiDetailPage from "./pages/admin/AdminKpiDetailPage";
 
 export default function App() {
   return (
@@ -28,9 +32,13 @@ export default function App() {
             {/* 수강생 조회(관리자) */}
             <Route path="/class/:classId/students" element={<StudentsPage />} />
             {/* 본인 수업 태도 조회(학생) */}
-            <Route path="/class/:classId/courses/:courseId/MyAttitude" element={<MainDashboard/>} />
+            <Route path="/class/:classId/MyAttitude" element={<MainDashboard/>} />
             <Route path="/class/:classId" element={<ClassDetailPage />} />
             <Route path="/class/:classId/courses" element={<CourseListPage />} />
+            <Route path="/class/:classId/adminDashboard" element={<AdminDashboard />} />
+            <Route path="/class/:classId/adminDashboard/kpi/:courseId" element={<AdminKpiPage />} />
+            <Route path="/class/:classId/adminDashboard/kpi/:courseId/:metric" element={<AdminKpiDetailPage />} />
+            {/*<Route path="/class/:classId/adminDashboard/kpi"*/}
             <Route path="/class/:classId/courses/:courseId/schedule" element={<CourseDetailPage />} />
             <Route path="/class/:classId/courses/:courseId/content" element={<CourseContentPage />} />
             <Route path="/class/:classId/courses/:courseId/summary" element={<LectureSummaryPage />} />

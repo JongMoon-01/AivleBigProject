@@ -1,8 +1,13 @@
 package com.edtech.edtech_backend.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Setter
+@Getter
 @Entity
 public class Lecture {
 
@@ -17,26 +22,8 @@ public class Lecture {
 
     private LocalDateTime createdAt;
 
-    // Getters
-    public Long getLectureId() {
-        return lectureId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getMpdPath() {
-        return mpdPath;
-    }
-
-    public String getVttPath() {
-        return vttPath;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+    @OneToOne(mappedBy = "lecture")
+    private Course course;
     
     @PrePersist
     public void prePersist() {

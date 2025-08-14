@@ -1,24 +1,26 @@
-from pydantic import BaseModel, validator
-from typing import List, Dict
+# app/models/schema.py
+from pydantic import BaseModel
+from typing import List, Optional
 
-class OptionItem(BaseModel):
+class Interval(BaseModel):
+    start: int                 # epoch ms
+    end: int                   # epoch ms
+    durationSec: Optional[int] = None
+    avgScore: Optional[float] = None
+
+class LlmQuizRequest(BaseModel):
+    classId: int
+    courseId: int
+    lectureId: int
+    userId: str
+    vttText: str
+    intervals: List[Interval]
+
+class Option(BaseModel):
     label: str
     text: str
 
-class QuizResponse(BaseModel):
-    quiz_id: int
+class QuizItem(BaseModel):
     question: str
-    options: List[OptionItem]  # ✅ 문자열 리스트 → 객체 리스트로 변경
+    options: List[Option]
     answer: str
-
-class QuizSubmissionRequest(BaseModel):
-    answers: Dict[str, str]  # ✅ 모든 키를 str로 받기
-    summary_id: int
-    user_id: str
-
-    @validator("answers", pre=True)
-    def convert_keys_to_str(cls, v):
-        if isinstance(v, dict):
-            return {str(k): v[k] for k in v}
-        raise ValueError("answers 필드는 딕셔너리여야 합니다.")
-

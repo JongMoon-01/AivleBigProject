@@ -28,6 +28,9 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
 
+llm:
+  base-url: http://127.0.0.1:8082
+
 jwt:
   secret: '87YlPD4ykG0WHHB6s2JKGSWLYQDVCIzT8YebMT0Z1EFpYXhAsZo6RyAa88KeRuWddvp1vIXihU3X9oPxVXuhsw=='
   expiration-ms: 3600000

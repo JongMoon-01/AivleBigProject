@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Line, Bar } from 'react-chartjs-2';
-import FocusMonitor from '../components/FocusMonitor';
+import Sidebar from "../components/Sidebar";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,7 +28,7 @@ ChartJS.register(
   Filler
 );
 
-const NewMainDashboard = () => {
+const MainDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const location = useLocation();
   
@@ -50,15 +50,15 @@ const NewMainDashboard = () => {
       } else {
         // 백엔드 연결 실패 시 더미 데이터 사용
         console.warn('백엔드 연결 실패, 더미 데이터 사용');
-        useMockData();
+        setMockData();
       }
     } catch (error) {
       console.error('API 호출 실패:', error);
-      useMockData();
+      setMockData();
     }
   };
 
-  const useMockData = () => {
+  const setMockData = () => {
     // 사용자별 차별화된 더미 데이터
     const userDataMap = {
       '1': {
@@ -498,8 +498,10 @@ const NewMainDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen flex bg-gradient-to-br from-blue-50 to-indigo-100">
+      <Sidebar />
       <div className="container mx-auto px-6 py-8">
+        
         {/* 헤더 */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
@@ -532,19 +534,11 @@ const NewMainDashboard = () => {
           </div>
         </div>
 
-        {/* 네비게이션 메뉴 */}
-        <NavigationMenu navigation={dashboardData.navigation} />
-
         {/* KPI 메트릭스 카드 (상단 3개) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <KPICard metric={dashboardData.kpiMetrics.attendance} />
           <KPICard metric={dashboardData.kpiMetrics.reviewRate} />
           <KPICard metric={dashboardData.kpiMetrics.focusAverage} />
-        </div>
-
-        {/* 집중도 실시간 모니터링 */}
-        <div className="mb-8">
-          <FocusMonitor userId={userId} isActive={true} />
         </div>
 
         {/* 차트 영역 (2x2 그리드) */}
@@ -587,26 +581,6 @@ const NewMainDashboard = () => {
             <div className="h-64">
               <WeeklyChangeChart chartData={dashboardData.charts.weeklyFocusChange} />
             </div>
-          </div>
-        </div>
-
-        {/* 데이터 소스 정보 */}
-        <div className="mt-8 bg-white p-4 rounded-lg shadow-md">
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <div>
-              <span className="font-medium">현재 사용자:</span> 사용자 {userId}
-            </div>
-            <div>
-              <span className="font-medium">활성 네비게이션:</span> {dashboardData.navigation?.activeItem || 'N/A'}
-            </div>
-            <div>
-              마지막 갱신: {new Date().toLocaleTimeString('ko-KR')}
-            </div>
-          </div>
-          <div className="mt-2 text-xs text-gray-500">
-            • 데이터 소스: Spring Boot Backend (http://localhost:8083)
-            • API 엔드포인트: /api/dashboard/user/{userId}
-            • 백엔드 연결 실패 시 더미 데이터 표시
           </div>
         </div>
       </div>
