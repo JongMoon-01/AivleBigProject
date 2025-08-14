@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+import os
 from app.config import settings
 from app.routers import quiz
 
@@ -18,10 +19,16 @@ app = FastAPI(
 )
 
 # CORS (Cross-Origin Resource Sharing) 미들웨어 설정
-# 프론트엔드(localhost:3000)에서 API 호출을 허용하기 위해 필요
+# 프론트엔드에서 API 호출을 허용하기 위해 필요
+# 환경변수로 CORS origin 설정 (기본값: 모든 origin 허용)
+cors_origins = os.getenv("CORS_ORIGINS", "*").split(",")
+if cors_origins == ["*"]:
+    # 모든 origin 허용 (프로덕션에서는 특정 도메인 지정 권장)
+    cors_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React 개발 서버 주소
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],  # 모든 HTTP 메서드 허용
     allow_headers=["*"],  # 모든 헤더 허용

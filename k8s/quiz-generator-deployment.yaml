@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: quiz-generator
-        image: edtechacr.azurecr.io/quiz-generator:v1
+        image: edtechacr.azurecr.io/quiz-generator:v2
         ports:
         - containerPort: 8082
         env:
