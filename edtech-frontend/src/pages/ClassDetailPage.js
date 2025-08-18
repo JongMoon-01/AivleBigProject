@@ -17,8 +17,8 @@ export default function ClassDetailPage() {
           <CourseCarousel classId={classId} />
 
           <div className="mt-10 grid grid-cols-2 gap-6">
-            <BoardPreview title="클래스 공지 게시판" />
-            <BoardPreview title="질문 게시판" />
+            <BoardPreview title="클래스 공지 게시판" to={`/class/${classId}/notice`} />
+            <BoardPreview title="질문 게시판" to={`/class/${classId}/qna`} />
           </div>
         </main>
       </div>
