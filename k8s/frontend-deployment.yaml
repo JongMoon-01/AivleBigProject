@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: edtechacr.azurecr.io/edtech-frontend:v2
+        image: edtechacr.azurecr.io/edtech-frontend:v5
         ports:
         - containerPort: 80
         env:

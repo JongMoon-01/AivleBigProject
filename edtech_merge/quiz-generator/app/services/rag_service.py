@@ -30,15 +30,17 @@ class RAGService:
             settings=ChromaSettings(anonymized_telemetry=False)
         )
         
-        # 컵렉션 가져오기 또는 새로 생성
+        # 기존 컬렉션 삭제 후 새로 생성 (Collection 충돌 방지)
         try:
-            self.collection = self.chroma_client.get_collection(name=settings.COLLECTION_NAME)
+            self.chroma_client.delete_collection(name=settings.COLLECTION_NAME)
+            logger.info(f"Deleted existing collection: {settings.COLLECTION_NAME}")
         except:
-            # cosine 유사도 사용하는 HNSW 인덱스로 컵렉션 생성
-            self.collection = self.chroma_client.create_collection(
-                name=settings.COLLECTION_NAME,
-                metadata={"hnsw:space": "cosine"}
-            )
+            logger.info(f"Collection {settings.COLLECTION_NAME} not found, creating new one")
+        
+        # 새 컬렉션 생성 (metadata 제거로 호환성 개선)
+        self.collection = self.chroma_client.create_collection(
+            name=settings.COLLECTION_NAME
+        )
     
     def get_embedding(self, text: str) -> List[float]:
         """
