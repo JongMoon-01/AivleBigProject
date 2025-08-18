@@ -1,7 +1,6 @@
 package com.edtech.edtech_backend.dto;
 
 import lombok.Getter;
-import java.util.List;
 
 @Getter
 public class ClassRegisterRequestDto {

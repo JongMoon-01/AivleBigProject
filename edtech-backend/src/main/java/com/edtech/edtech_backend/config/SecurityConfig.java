@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/classes/**").permitAll()
                 // 스트리밍 파일
                 .requestMatchers(HttpMethod.GET, "/api/lectures/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/mpd/**", "/vtt/**", "/**/*.m3u8","/**/*.m4s", "/**/*.mp4").permitAll()
+                .requestMatchers(HttpMethod.GET, "/mpd/**", "/vtt/**").permitAll()
                 .requestMatchers(HttpMethod.POST,   "/api/classes/*/enroll").hasAnyRole("STUDENT","ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/classes/*/enroll").hasAnyRole("STUDENT","ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/classes").hasRole("ADMIN")

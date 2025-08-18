@@ -79,53 +79,39 @@ export default function LectureSummaryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classId, courseId]);
 
-  const loadUnfocusedRanges = async () => {
-    if (!classId || !courseId) {
+
+async function loadUnfocusedRanges() {
+  try {
+    const { data } = await api.get("/focus/intervals/latest", {
+      params: { classId, courseId },
+    });
+
+    // 비어있으면 하이라이트 없음
+    if (!data || !data.startedAt || !Array.isArray(data.intervals)) {
       setUnfocusedRanges([]);
       return;
     }
-    try {
-      // ✅ axios 인스턴스: JWT 자동 포함, baseURL/에러 인터셉터 공통 적용
-      const { status, data } = await api.get(`/focus/intervals/latest`, {
-        params: { classId, courseId },
-        validateStatus: () => true, // 204도 resolve 받기 위해
-      });
 
-      if (status === 204) {
-        // 최신 CEA 없음 → 하이라이트 생략
-        setUnfocusedRanges([]);
-        return;
-      }
-      if (status === 401 || status === 403) {
-        console.warn("인증 필요/권한 부족 – 하이라이트 생략");
-        setUnfocusedRanges([]);
-        return;
-      }
-      if (status !== 200 || !data) {
-        console.warn("예상치 못한 응답:", status, data);
-        setUnfocusedRanges([]);
-        return;
-      }
+    const startedAtMs = toMs(data.startedAt);
+    const ranges = data.intervals
+      .map(it => ({
+        startSec: (it.start - startedAtMs) / 1000,
+        endSec:   (it.end   - startedAtMs) / 1000,
+      }))
+      .filter(x => Number.isFinite(x.startSec) && Number.isFinite(x.endSec))
+      .map(x => ({ startSec: Math.max(0, x.startSec), endSec: Math.max(0, x.endSec) }));
 
-      const startedAtMs = toMs(data.startedAt);
-      const ivs = Array.isArray(data.intervals) ? data.intervals : [];
-      const ranges = ivs
-        .map((it) => ({
-          startSec: (it.start - startedAtMs) / 1000,
-          endSec: (it.end - startedAtMs) / 1000,
-        }))
-        .filter((x) => Number.isFinite(x.startSec) && Number.isFinite(x.endSec))
-        .map((x) => ({
-          startSec: Math.max(0, x.startSec),
-          endSec: Math.max(0, x.endSec),
-        }));
+    setUnfocusedRanges(mergeRanges(ranges));
+  } catch (e) {
+    console.warn(
+      "CEA 없음/권한문제 – 하이라이트 생략:",
+      e?.response?.status,
+      e?.response?.data || e?.message
+    );
+    setUnfocusedRanges([]);
+  }
+}
 
-      setUnfocusedRanges(mergeRanges(ranges));
-    } catch (e) {
-      console.error("[LectureSummary] CEA 로드 실패:", e);
-      setUnfocusedRanges([]);
-    }
-  };
 
   const loadShakaPlayer = async () => {
     const video = videoRef.current;

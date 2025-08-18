@@ -1,6 +1,5 @@
 package com.edtech.edtech_backend.controller;
 
-import com.edtech.edtech_backend.dto.StudentSummaryDto;
 import com.edtech.edtech_backend.entity.*;
 import com.edtech.edtech_backend.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -8,8 +7,6 @@ import org.springframework.http.*; import org.springframework.web.bind.annotatio
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/classes")

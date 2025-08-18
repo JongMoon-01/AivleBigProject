@@ -1,7 +1,6 @@
 package com.edtech.edtech_backend.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
 public class Schedule {

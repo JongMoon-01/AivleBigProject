@@ -13,11 +13,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 @RestController
@@ -83,6 +83,50 @@ public class FocusController {
         return ResponseEntity.ok(new FocusDto.SaveResponse(id));
     }
 
+     @GetMapping("/intervals/latest")
+    public ResponseEntity<FocusDto.SessionView> getLatest(
+            Authentication authentication,
+            @RequestParam Long classId,
+            @RequestParam Long courseId
+    ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인 필요");
+        }
+        String userId = resolveUserId(authentication);
+
+        var opt = analyticsRepository.findLatest(classId, courseId, userId);
+
+        FocusDto.SessionView view = new FocusDto.SessionView();
+        if (opt.isEmpty()) {
+            // 비어있는 JSON으로 200 반환 (프론트에서 안전하게 처리 가능)
+            view.setStartedAt(null);
+            view.setEndedAt(null);
+            view.setTotalDurationSec(null);
+            view.setIntervals(Collections.emptyList());
+            return ResponseEntity.ok(view);
+        }
+
+        var cea = opt.get();
+        view.setStartedAt(toEpoch(cea.getStartedAt()));
+        view.setEndedAt(toEpoch(cea.getEndedAt()));
+        view.setTotalDurationSec(cea.getTotalDurationSec());
+        view.setIntervals(
+                (cea.getAttentionArr() == null ? Collections.<FocusInterval>emptyList() : cea.getAttentionArr())
+                        .stream()
+                        .map(fi -> {
+                            FocusDto.IntervalPayload p = new FocusDto.IntervalPayload();
+                            p.setStart(toEpoch(fi.getStartAt()));
+                            p.setEnd(toEpoch(fi.getEndAt()));
+                            p.setDurationSec(fi.getDurationSec());
+                            p.setAvgScore(fi.getAvgScore());
+                            return p;
+                        })
+                        .collect(Collectors.toList())
+        );
+        return ResponseEntity.ok(view);
+    }
+     private Long toEpoch(Instant t) { return (t == null) ? null : t.toEpochMilli(); }
+
     private String resolveUserId(Authentication auth) {
         Object p = auth.getPrincipal();
         if (p instanceof UserDetails ud) return ud.getUsername();
@@ -90,46 +134,7 @@ public class FocusController {
             String email = jwt.getClaimAsString("email");
             return (email != null && !email.isBlank()) ? email : jwt.getSubject();
         }
-        if (p instanceof String s) return s;     // ex) principal이 문자열인 커스텀 토큰
-        return auth.getName();                   // 마지막 fallback
+        if (p instanceof String s) return s;
+        return auth.getName();
     }
-    @GetMapping("/intervals/latest")
-@Transactional(readOnly = true)
-public ResponseEntity<FocusDto.LatestView> getLatest(
-        @RequestParam Long classId,
-        @RequestParam Long courseId,
-        Authentication auth
-) {
-    if (auth == null || !auth.isAuthenticated()) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
-    String userId = resolveUserId(auth);
-    var opt = analyticsRepository.findLatest(classId, courseId, userId);
-    if (opt.isEmpty()) return ResponseEntity.noContent().build();
-
-    var cea = opt.get();
-    if (cea.getAttentionArr() == null || cea.getAttentionArr().isEmpty()) {
-        return ResponseEntity.noContent().build();
-    }
-
-    var view = new FocusDto.LatestView();
-    // startedAt 없을 수도 있으니 보정
-    var started = cea.getStartedAt();
-    if (started == null && cea.getAttentionArr().get(0).getStartAt() != null) {
-        started = cea.getAttentionArr().get(0).getStartAt();
-    }
-    view.setStartedAt(started);
-
-    var intervals = cea.getAttentionArr().stream().map(fi -> {
-        var iv = new FocusDto.IntervalView();
-        iv.setStart(fi.getStartAt() != null ? fi.getStartAt().toEpochMilli() : 0L);
-        iv.setEnd(fi.getEndAt() != null ? fi.getEndAt().toEpochMilli() : iv.getStart());
-        iv.setDurationSec(fi.getDurationSec());
-        iv.setAvgScore(fi.getAvgScore());
-        return iv;
-    }).collect(Collectors.toList());
-    view.setIntervals(intervals);
-
-    return ResponseEntity.ok(view);
-}
 }

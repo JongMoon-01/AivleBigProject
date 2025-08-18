@@ -47,4 +47,12 @@ public class FocusDto {
     private Integer durationSec;
     private Double avgScore;
     }
+
+    @Getter @Setter
+    public static class SessionView {
+        private Long startedAt;   // epoch ms (null 가능)
+        private Long endedAt;     // epoch ms (옵션)
+        private Integer totalDurationSec;
+        private List<IntervalPayload> intervals; // 비어있을 수 있음
+    }
 }
