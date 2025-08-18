@@ -15,55 +15,55 @@ quiz_service = QuizGenerationService()
 # 인메모리 퀴즈 캐시 - 사용자가 풀어야 할 퀴즈와 정답을 임시 저장
 quiz_cache: Dict[str, QuizResponse] = {}
 
-@router.post("/korean-history", response_model=QuizResponse)
-async def generate_korean_history_quiz():
+@router.post("/python-lecture", response_model=QuizResponse)
+async def generate_python_lecture_quiz():
     """
-    한국사 퀴즈 생성 엔드포인트
+    파이썬 강의 퀴즈 생성 엔드포인트
     
     Returns:
-        QuizResponse: 생성된 한국사 퀴즈 5문제
+        QuizResponse: 생성된 파이썬 강의 퀴즈 5문제
         
     Raises:
         HTTPException: 퀴즈 생성 실패 시 500 에러
     """
     try:
-        # RAG 기반 한국사 퀴즈 생성
-        quiz = quiz_service.generate_quiz("korean-history")
+        # RAG 기반 파이썬 강의 퀴즈 생성
+        quiz = quiz_service.generate_quiz("python-lecture")
         
         # 생성된 퀴즈를 캐시에 저장 (답안 채점용)
-        cache_key = f"korean-history_{quiz.quizzes[0].id}"
+        cache_key = f"python-lecture_{quiz.quizzes[0].id}"
         quiz_cache[cache_key] = quiz
         
         return quiz
     except Exception as e:
-        logger.error(f"Failed to generate Korean History quiz: {e}")
+        logger.error(f"Failed to generate Python Lecture quiz: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"퀴즈 생성에 실패했습니다: {str(e)}"
         )
 
-@router.post("/linear-algebra", response_model=QuizResponse)
-async def generate_linear_algebra_quiz():
+@router.post("/pandas-lecture", response_model=QuizResponse)
+async def generate_pandas_lecture_quiz():
     """
-    선형대수학 퀴즈 생성 엔드포인트
+    판다스 강의 퀴즈 생성 엔드포인트
     
     Returns:
-        QuizResponse: 생성된 선형대수학 퀴즈 5문제
+        QuizResponse: 생성된 판다스 강의 퀴즈 5문제
         
     Raises:
         HTTPException: 퀴즈 생성 실패 시 500 에러
     """
     try:
-        # RAG 기반 선형대수학 퀴즈 생성
-        quiz = quiz_service.generate_quiz("linear-algebra")
+        # RAG 기반 판다스 강의 퀴즈 생성
+        quiz = quiz_service.generate_quiz("pandas-lecture")
         
         # 생성된 퀴즈를 캐시에 저장 (답안 채점용)
-        cache_key = f"linear-algebra_{quiz.quizzes[0].id}"
+        cache_key = f"pandas-lecture_{quiz.quizzes[0].id}"
         quiz_cache[cache_key] = quiz
         
         return quiz
     except Exception as e:
-        logger.error(f"Failed to generate Linear Algebra quiz: {e}")
+        logger.error(f"Failed to generate Pandas Lecture quiz: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"퀴즈 생성에 실패했습니다: {str(e)}"

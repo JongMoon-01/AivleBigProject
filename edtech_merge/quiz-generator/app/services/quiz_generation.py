@@ -151,10 +151,10 @@ class QuizGenerationService:
         Raises:
             ValueError: 알 수 없는 과목 타입인 경우
         """
-        if course_type == "korean-history":
-            return f"{settings.TXT_DIR}/korean_history.txt"
-        elif course_type == "linear-algebra":
-            return f"{settings.TXT_DIR}/linear_algebra.txt"
+        if course_type == "python-lecture":
+            return "resources/coding_education/python_lecture.txt"
+        elif course_type == "pandas-lecture":
+            return "resources/coding_education/pandas_lecture.txt"
         else:
             raise ValueError(f"Unknown course type: {course_type}")
     
@@ -168,10 +168,10 @@ class QuizGenerationService:
         Returns:
             str: 한글 과목명
         """
-        if course_type == "korean-history":
-            return "한국 역사"
-        elif course_type == "linear-algebra":
-            return "선형대수학"
+        if course_type == "python-lecture":
+            return "파이썬 프로그래밍"
+        elif course_type == "pandas-lecture":
+            return "판다스 데이터 분석"
         return course_type
     
     def _parse_quiz_response(self, json_response: str, course_type: str) -> QuizResponse:

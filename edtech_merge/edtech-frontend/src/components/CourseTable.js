@@ -7,21 +7,22 @@ export default function CourseTable() {
 
   const courses = [
     {
-      title: "한국의 역사",
+      title: "파이썬 프로그래밍",
       instructor: "이한나",
       tags: ["확인완료", "스마트융합", "과제"],
       stats: [0, 0, 0, 0, 0, 0],
-      quizType: "korean-history"
+      quizType: "python-lecture"
     },
     {
-      title: "선형대수학",
+      title: "판다스 데이터 분석 기초",
       instructor: "관리자",
       tags: ["필수", "온라인"],
       stats: [1, 0, 0, 0, 0, 0],
-      quizType: "linear-algebra"
+      quizType: "pandas-lecture"
     },
     // ...다른 강의 추가
   ];
+
 
   const handleQuizClick = (quizType) => {
     setSelectedCourseType(quizType);

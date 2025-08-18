@@ -163,7 +163,7 @@ export default function QuizModal({ courseType, onClose }) {
       <div className="bg-white rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">
-            {courseType === 'korean-history' ? '한국의 역사 퀴즈' : '선형대수학 퀴즈'}
+            {courseType === 'python-lecture' ? '파이썬 프로그래밍 퀴즈' : '판다스 데이터 분석 퀴즈'}
           </h2>
           <button 
             onClick={onClose}
