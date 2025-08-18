@@ -14,7 +14,7 @@
 
 ### 3. Kubernetes 설정
 - Docker 이미지 버전을 v2로 업데이트
-- 프론트엔드와 백엔드 모두 LoadBalancer 타입으로 노출
+- 프론트엔드 LoadBalancer 타입으로 노출, 백엔드 cluster IP로 내부 통신만 가능, 외부에서 접근 불가능하게 함.
 
 ## 배포 방법
 
