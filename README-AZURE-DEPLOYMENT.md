@@ -50,13 +50,13 @@ az acr login --name edtechacr
 ```bash
 # Frontend
 cd edtech_merge/edtech-frontend
-docker build -t edtechacr.azurecr.io/edtech-frontend:v2 .
-docker push edtechacr.azurecr.io/edtech-frontend:v2
+docker build -t edtechacr.azurecr.io/edtech-frontend:v5 .
+docker push edtechacr.azurecr.io/edtech-frontend:v5
 
 # Backend
 cd ../quiz-generator
-docker build -t edtechacr.azurecr.io/quiz-generator:v2 .
-docker push edtechacr.azurecr.io/quiz-generator:v2
+docker build -t edtechacr.azurecr.io/quiz-generator:v5 .
+docker push edtechacr.azurecr.io/quiz-generator:v5
 ```
 
 3. **AKS 클러스터 연결**
@@ -132,11 +132,11 @@ kubectl exec -it <frontend-pod> -- cat /etc/nginx/conf.d/default.conf
 ### 이미지 업데이트
 ```bash
 # 새 버전 빌드 및 푸시
-docker build -t edtechacr.azurecr.io/edtech-frontend:v3 .
-docker push edtechacr.azurecr.io/edtech-frontend:v3
+docker build -t edtechacr.azurecr.io/edtech-frontend:v5 .
+docker push edtechacr.azurecr.io/edtech-frontend:v5
 
 # Deployment 업데이트
-kubectl set image deployment/edtech-frontend frontend=edtechacr.azurecr.io/edtech-frontend:v3
+kubectl set image deployment/edtech-frontend frontend=edtechacr.azurecr.io/edtech-frontend:v5
 ```
 
 ### 롤백
