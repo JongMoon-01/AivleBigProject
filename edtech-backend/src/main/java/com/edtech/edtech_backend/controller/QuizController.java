@@ -37,8 +37,4 @@ public class QuizController {
         }
         return auth.getName();
     }
-
-    // ✅ 핑 엔드포인트로 매핑 확인용 (원하면 잠깐 넣어 테스트)
-    @GetMapping("/ping")
-    public String ping() { return "pong"; }
 }

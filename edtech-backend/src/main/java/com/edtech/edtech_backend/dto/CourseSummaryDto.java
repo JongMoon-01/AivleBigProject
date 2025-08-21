@@ -7,4 +7,7 @@ import lombok.Getter;
 public class CourseSummaryDto {
     private Long courseId;
     private String title;
+    private String instructor;
+    private String materialUrl;
+    private String tag;
 }

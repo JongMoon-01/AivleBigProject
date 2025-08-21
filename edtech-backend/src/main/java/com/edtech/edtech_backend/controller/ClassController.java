@@ -49,10 +49,4 @@ public class ClassController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // (선택) 관리자용 전체 엔티티 목록이 필요하면 별도 경로 + 권한 보호
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/admin/raw")
-    public List<ClassEntity> listRawForAdmin() {
-        return classRepository.findAll();
-    }
 }

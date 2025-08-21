@@ -7,7 +7,7 @@ import CourseSidebar from "../components/CourseSidebar";
 import api from "../api/axios";
 import { getAuth } from "../utils/auth";
 
-const LECTURE_VIDEO_PATH = "/videos/sample_lecture.mp4";
+const LECTURE_VIDEO_PATH = "/videos/sample_lecture.mkv";
 const AI_SERVER_URL = "http://localhost:18000/api/score/realtime/image";   // AI 분석 서버
 const FOCUS_API_URL = "http://localhost:8080/api/focus/intervals";        // 집중 구간 저장(스프링)
 

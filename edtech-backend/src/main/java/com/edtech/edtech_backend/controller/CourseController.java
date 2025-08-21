@@ -34,26 +34,42 @@ public class CourseController {
     public List<CourseSummaryDto> listCourses(@PathVariable Long classId) {
         return courseRepository.findByClassEntity_ClassId(classId)
                 .stream()
-                .map(c -> new CourseSummaryDto(c.getCourseId(), c.getTitle()))
-                .toList();
+                .map(c -> new CourseSummaryDto(
+                    c.getCourseId(),
+                    c.getTitle(),
+                    c.getInstructor(),
+                    c.getMaterialUrl(),
+                    c.getTag()
+            ))
+            .toList();
     }
 
-    /** 코스 생성: 관리자만 */
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/courses")
-    public ResponseEntity<?> createCourse(@PathVariable Long classId,
-                                          @RequestBody CourseCreateRequestDto dto) {
-        ClassEntity cls = classRepository.findById(classId)
-                .orElseThrow(() -> new IllegalArgumentException("invalid classId"));
-        Course c = new Course();
-        c.setTitle(dto.getTitle());
-        c.setInstructor(dto.getInstructor());
-        c.setMaterialUrl(dto.getMaterialUrl());
-        c.setTag(dto.getTag());
-        c.setClassEntity(cls);
-        Course saved = courseRepository.save(c);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new CourseSummaryDto(saved.getCourseId(), saved.getTitle()));
-    }
+@PostMapping("/courses")
+public ResponseEntity<?> createCourse(@PathVariable Long classId,
+                                      @RequestBody CourseCreateRequestDto dto) {
+    ClassEntity cls = classRepository.findById(classId)
+            .orElseThrow(() -> new IllegalArgumentException("invalid classId"));
+
+    Course c = new Course();
+    c.setTitle(dto.getTitle());
+    c.setInstructor(dto.getInstructor());
+    c.setMaterialUrl(dto.getMaterialUrl());
+    c.setTag(dto.getTag());
+    c.setClassEntity(cls);
+
+    Course saved = courseRepository.save(c);
+
+    return ResponseEntity.status(HttpStatus.CREATED).body(
+        new CourseSummaryDto(
+            saved.getCourseId(),
+            saved.getTitle(),
+            saved.getInstructor(),
+            saved.getMaterialUrl(),
+            saved.getTag()
+        )
+    );
+}
 
     /** 수강생 조회: 관리자만 */
     @PreAuthorize("hasRole('ADMIN')")

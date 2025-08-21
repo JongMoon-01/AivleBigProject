@@ -16,6 +16,14 @@ import MainDashboard from "./pages/MainDashboard";
 import AdminDashboard from "./pages/admin/AdminHomePage"
 import AdminKpiPage from "./pages/admin/AdminKpiPage";
 import AdminKpiDetailPage from "./pages/admin/AdminKpiDetailPage";
+import QnaListPage from "./pages/qna/QnaListPage";
+import QnaDetailPage from "./pages/qna/QnaDetailPage";
+import QnaWritePage from "./pages/qna/QnaWritePage";
+import QnaEditPage from "./pages/qna/QnaEditPage";
+import NoticePage from "./pages/notice/NoticePage";
+import NoticeDetailPage from "./pages/notice/NoticeDetailPage";
+import NoticeWritePage from "./pages/notice/NoticeWritePage";
+import NoticeEditPage from "./pages/notice/NoticeEditPage";
 
 export default function App() {
   return (
@@ -34,6 +42,17 @@ export default function App() {
             {/* 본인 수업 태도 조회(학생) */}
             <Route path="/class/:classId/MyAttitude" element={<MainDashboard/>} />
             <Route path="/class/:classId" element={<ClassDetailPage />} />
+            {/* 게시판 */}
+            <Route path="/class/:classId/qna" element={<QnaListPage />} />
+            <Route path="/class/:classId/qna/new" element={<QnaWritePage />} />
+            <Route path="/class/:classId/qna/:postId" element={<QnaDetailPage />} />
+            <Route path="/class/:classId/qna/:postId/edit" element={<QnaEditPage />} />
+
+            <Route path="/class/:classId/notice" element={<NoticePage />} />
+            <Route path="/class/:classId/notice/write" element={<NoticeWritePage />} />
+            <Route path="/class/:classId/notice/:postId" element={<NoticeDetailPage />} />
+            <Route path="/class/:classId/notice/:postId/edit" element={<NoticeEditPage />} />
+
             <Route path="/class/:classId/courses" element={<CourseListPage />} />
             <Route path="/class/:classId/adminDashboard" element={<AdminDashboard />} />
             <Route path="/class/:classId/adminDashboard/kpi/:courseId" element={<AdminKpiPage />} />
