@@ -183,6 +183,6 @@ kubectl logs --tail=100 deployment/quiz-generator
   siege -c20 -t30S http://quiz-generator-service:8082/
 
   # 2. 헬스체크 엔드포인트 테스트
-  siege -c30 -t40S http://quiz-generator-service:8082/api/quiz/health
+  siege -c30 -t40S http://quiz-generator-service:8082/api/quiz/health     <= 이것이 작동을 잘한다.
 
   결론: 2개의 엔드포인트만 비용 없이 사용 가능합니다.
