@@ -19,7 +19,7 @@
 ## 배포 방법
 
 ### 사전 준비
-1. Azure CLI 설치
+1. Azure CLI 설치    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 2. Docker Desktop 설치 및 실행
 3. kubectl 설치
 4. VM 크기 Standard_D2s_v3
