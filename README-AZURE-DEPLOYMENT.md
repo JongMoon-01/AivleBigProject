@@ -22,6 +22,7 @@
 1. Azure CLI 설치
 2. Docker Desktop 설치 및 실행
 3. kubectl 설치
+4. VM 크기 Standard_D2s_v3
 
 ### 배포 스크립트 실행
 
