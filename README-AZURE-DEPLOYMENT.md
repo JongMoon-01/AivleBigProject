@@ -155,3 +155,34 @@ kubectl logs -f deployment/edtech-frontend
 # 최근 100줄
 kubectl logs --tail=100 deployment/quiz-generator
 ```
+
+
+● 기존 엔드포인트 중 돈이 안 나가는 것들:
+
+  ✅ 사용 가능한 엔드포인트
+
+  1. GET / - 루트 엔드포인트 (main.py:40-57)
+    - API 정보만 반환
+    - OpenAI API 호출 없음
+  2. GET /api/quiz/health - 헬스체크 (quiz.py:133-141)
+    - 서비스 상태만 확인
+    - OpenAI API 호출 없음
+
+  ❌ 사용 불가능한 엔드포인트
+
+  1. POST /api/quiz/python-lecture - OpenAI API 호출 (비용 발생)
+  2. POST /api/quiz/pandas-lecture - OpenAI API 호출 (비용 발생)
+  3. POST /api/quiz/submit - 캐시된 퀴즈 필요 (퀴즈 생성 없이는 사용 불가)
+
+  부하 테스트 가능한 명령어:
+
+  # Siege Pod 접속
+  kubectl exec -it pod/siege -- /bin/bash
+
+  # 1. 루트 엔드포인트 테스트
+  siege -c20 -t30S http://quiz-generator-service:8082/
+
+  # 2. 헬스체크 엔드포인트 테스트
+  siege -c30 -t40S http://quiz-generator-service:8082/api/quiz/health
+
+  결론: 2개의 엔드포인트만 비용 없이 사용 가능합니다.
