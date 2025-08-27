@@ -1,20 +1,70 @@
-# AI 집중도 분석 시스템 - 독립 실행 가이드
+# AI 집중도 분석 시스템 - 완전 독립 실행 가이드
 
 ## 🎯 시스템 개요
 MobileNet과 L2CS를 활용한 AI 기반 실시간 집중도 분석 시스템입니다.
-- **감정 인식**: MobileNet 모델을 통한 5가지 감정 상태 분류
-- **시선 추적**: L2CS-Net 모델을 통한 시선 각도 분석
-- **통합 분석**: 감정과 시선 정보를 결합한 집중도 점수 산출
+- **감정 인식**: MobileNet V1 모델을 통한 5가지 감정 상태 분류 (집중, 졸음, 지루함, 혼란, 만족)
+- **시선 추적**: L2CS-Net (ResNet50 기반) 모델을 통한 시선 각도 분석
+- **통합 분석**: 감정(60%)과 시선(40%) 정보를 가중 평균한 집중도 점수 산출
+- **독립 실행**: FastAPI 서버 없이 Python 스크립트로 직접 실행 가능
 
 ## 📋 필수 요구사항
 - Python 3.8 이상
-- 웹캠 (테스트용)
+- 웹캠 (실시간 분석용, 선택사항)
 - 최소 4GB RAM
-- Chrome, Firefox, Edge 등 최신 브라우저
+- GPU (선택사항, CPU로도 실행 가능)
 
-## 🚀 AI 시스템만 독립 실행하기
+## 🚀 방법 1: 독립 실행 스크립트 사용 (서버 없이 직접 실행)
 
 ### 1. 필요 패키지 설치
+```bash
+# 필수 패키지 한 번에 설치
+pip install tensorflow torch torchvision opencv-python mediapipe pillow numpy
+
+# 또는 requirements 파일 사용
+pip install -r requirements_standalone.txt
+```
+
+### 2. 독립 실행 스크립트 실행
+```bash
+# 통합 AI 분석기 실행
+python ai_attention_analyzer_standalone.py
+```
+
+### 3. 스크립트 기능
+- **이미지 파일 분석**: 저장된 이미지에서 집중도 분석
+- **웹캠 실시간 분석**: 지정 시간 동안 연속 분석
+- **웹캠 단일 프레임**: 스페이스바로 캡처 후 분석
+- **통계 보기**: 분석 히스토리 통계
+- **결과 저장**: JSON 형식으로 결과 저장
+
+### 4. Python 코드로 직접 사용
+```python
+from ai_attention_analyzer_standalone import IntegratedAttentionAnalyzer
+import cv2
+
+# 분석기 초기화
+analyzer = IntegratedAttentionAnalyzer()
+
+# 이미지 파일 분석
+result = analyzer.analyze_from_file("test_image.jpg")
+print(f"통합 집중도: {result['integrated_attention_score']:.1f}")
+
+# 웹캠에서 단일 프레임 분석
+cap = cv2.VideoCapture(0)
+ret, frame = cap.read()
+if ret:
+    result = analyzer.analyze_image(frame)
+    analyzer.print_result(result)
+cap.release()
+
+# 통계 확인
+stats = analyzer.get_statistics()
+print(f"평균 집중도: {stats['average_integrated_attention']:.1f}")
+```
+
+## 🚀 방법 2: FastAPI 서버를 통한 실행
+
+### 1. FastAPI 서버 패키지 설치
 ```bash
 cd attention-model-fastapi-service
 pip install -r requirements.txt
@@ -26,7 +76,13 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 3. API 테스트
+### 3. API 테스트 스크립트 실행
+```bash
+# 별도 터미널에서 테스트 스크립트 실행
+python test_ai_standalone.py
+```
+
+### 4. API 직접 테스트
 
 #### 방법 1: 브라우저에서 Swagger UI 접속
 ```
@@ -101,24 +157,42 @@ http://localhost:3000/integrated-analysis
 
 ## 📁 핵심 파일 구조
 ```
-attention-model-fastapi-service/
-├── app/
-│   ├── main.py                              # FastAPI 메인 서버
-│   ├── ai/
-│   │   ├── mobilenet_processor.py           # MobileNet 감정 분석
-│   │   ├── l2cs_gaze_tracker.py            # L2CS 시선 추적
-│   │   └── integrated_attention_analyzer.py # 통합 분석기
-│   └── routers/
-│       ├── mobilenet.py                     # MobileNet API 엔드포인트
-│       └── integrated_attention.py          # 통합 분석 API
-├── requirements.txt                         # Python 의존성
-└── README.md                                # 상세 문서
-
-Mobilenet_model_trained.keras                # 감정 인식 모델 파일
-extracted_models/
-└── 2. 학습 모델 파일/
-    └── l2cs_trained.pkl                    # 시선 추적 모델 파일
+프로젝트 루트/
+├── ai_attention_analyzer_standalone.py      # ⭐ 독립 실행 통합 분석 스크립트
+├── test_ai_standalone.py                    # API 테스트 스크립트
+├── requirements_standalone.txt              # 독립 실행용 패키지 목록
+├── Mobilenet_model_trained.keras           # MobileNet 감정 인식 모델
+├── extracted_models/
+│   └── 2. 학습 모델 파일/
+│       └── l2cs_trained.pkl               # L2CS 시선 추적 모델
+└── attention-model-fastapi-service/        # FastAPI 서버 (선택사항)
+    ├── app/
+    │   ├── main.py                        # FastAPI 메인 서버
+    │   ├── ai/
+    │   │   ├── mobilenet_processor.py     # MobileNet 처리기
+    │   │   ├── l2cs_gaze_tracker.py      # L2CS 처리기
+    │   │   └── integrated_attention_analyzer.py # 통합 분석기
+    │   └── routers/
+    │       ├── mobilenet.py               # 감정 분석 API
+    │       └── integrated_attention.py    # 통합 분석 API
+    └── requirements.txt                   # 서버용 패키지 목록
 ```
+
+## 🔬 AI 모델 상세 사양
+
+### MobileNet 감정 인식 모델
+- **아키텍처**: MobileNet V1 (Depthwise Separable Convolution)
+- **입력 크기**: 224×224×3 RGB 이미지
+- **출력**: 5개 감정 클래스 (집중, 졸음, 지루함, 혼란, 만족)
+- **파라미터**: 약 4.2M
+- **가중치 보정**: 긍정 감정 강화 (집중 ×2.2, 만족 ×1.7)
+
+### L2CS-Net 시선 추적 모델
+- **아키텍처**: ResNet50 백본 + Gaze Prediction Heads
+- **입력 크기**: 448×448×3 RGB 이미지
+- **출력**: Yaw/Pitch 각도 (90개 빈, 4도 간격)
+- **범위**: ±180도
+- **집중도 계산**: 정면(0°,0°)에서 거리에 반비례
 
 ## 🔍 주요 API 엔드포인트
 

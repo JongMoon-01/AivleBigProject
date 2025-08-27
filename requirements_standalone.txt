@@ -1,0 +1,19 @@
+# AI 집중도 분석 시스템 - 독립 실행용 필수 패키지
+
+# 딥러닝 프레임워크
+tensorflow>=2.10.0
+torch>=1.13.0
+torchvision>=0.14.0
+
+# 컴퓨터 비전
+opencv-python>=4.7.0
+mediapipe>=0.10.0
+Pillow>=9.3.0
+
+# 데이터 처리
+numpy>=1.23.0
+scipy>=1.9.0
+
+# 기타 유틸리티
+tqdm>=4.64.0
+matplotlib>=3.6.0
