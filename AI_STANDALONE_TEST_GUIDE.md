@@ -251,13 +251,51 @@ http://localhost:3000/integrated-analysis
 }
 ```
 
+## 📥 필수 다운로드 파일 목록
+
+### AI 모델 파일 (필수)
+1. **MobileNet 감정 인식 모델**
+   - 파일명: `Mobilenet_model_trained.keras`
+   - 크기: 약 16MB
+   - 위치: 프로젝트 루트 디렉토리
+
+2. **L2CS 시선 추적 모델**
+   - 파일명: `l2cs_trained.pkl`
+   - 크기: 약 91MB
+   - 위치: `extracted_models/2. 학습 모델 파일/`
+
+### Python 스크립트 (필수)
+3. **독립 실행 통합 분석기**
+   - 파일명: `ai_attention_analyzer_standalone.py`
+   - 설명: 서버 없이 직접 실행 가능한 통합 스크립트
+
+4. **API 테스트 스크립트**
+   - 파일명: `test_ai_standalone.py`
+   - 설명: FastAPI 서버 테스트용 (선택사항)
+
+### 문서 파일
+5. **실행 가이드**
+   - 파일명: `AI_STANDALONE_TEST_GUIDE.md` (현재 문서)
+   
+6. **모델 상세 설명**
+   - 파일명: `AI_SYSTEM_MODEL_OVERVIEW.md`
+
+### 의존성 파일
+7. **독립 실행용 패키지 목록**
+   - 파일명: `requirements_standalone.txt`
+
+### FastAPI 서버 (선택사항)
+8. **서버 전체 폴더**
+   - 폴더명: `attention-model-fastapi-service/`
+   - 설명: API 서버로 실행하려면 필요
+
 ## 🐛 문제 해결
 
 ### 모델 파일 오류
 ```bash
 # 모델 파일 위치 확인
 ls -la Mobilenet_model_trained.keras
-ls -la extracted_models/2.\ 학습\ 모델\ 파일/l2cs_trained.pkl
+ls -la "extracted_models/2. 학습 모델 파일/l2cs_trained.pkl"
 ```
 
 ### 패키지 설치 오류
@@ -297,6 +335,23 @@ uvicorn app.main:app --port 8001
 - [프로젝트 전체 README](AI_SYSTEM_README.md)
 - [모델 상세 설명](AI_SYSTEM_MODEL_OVERVIEW.md)
 
+## 💡 빠른 시작 가이드
+
+### 최소 필요 파일만으로 실행하기
+```bash
+# 1. 필수 파일 3개만 다운로드
+#    - ai_attention_analyzer_standalone.py
+#    - Mobilenet_model_trained.keras
+#    - extracted_models/2. 학습 모델 파일/l2cs_trained.pkl
+
+# 2. 패키지 설치
+pip install tensorflow torch torchvision opencv-python mediapipe pillow numpy
+
+# 3. 실행
+python ai_attention_analyzer_standalone.py
+```
+
 ---
 *작성일: 2025-08-27*
-*버전: 1.0*
+*버전: 2.0*
+*제작: AI 집중도 분석 시스템 팀*
