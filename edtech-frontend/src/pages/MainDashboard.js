@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Line, Bar } from 'react-chartjs-2';
 import Sidebar from "../components/Sidebar";
 import {
@@ -12,8 +12,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler,
-  ChartOptions
+  Filler
 } from 'chart.js';
 
 ChartJS.register(
@@ -31,16 +30,13 @@ ChartJS.register(
 const MainDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
   
   // URL 파라미터에서 userId 추출 (기본값: 1)
   const searchParams = new URLSearchParams(location.search);
   const userId = searchParams.get('userId') || '1';
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, [userId]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       // Spring Boot 백엔드에서 데이터 가져오기
       const response = await fetch(`http://localhost:8083/api/dashboard/user/${userId}`);
@@ -56,7 +52,11 @@ const MainDashboard = () => {
       console.error('API 호출 실패:', error);
       setMockData();
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [userId, fetchDashboardData]);
 
   const setMockData = () => {
     // 사용자별 차별화된 더미 데이터
@@ -464,31 +464,6 @@ const MainDashboard = () => {
     return <Bar data={data} options={options} />;
   };
 
-  // Navigation Menu
-  const NavigationMenu = ({ navigation }) => {
-    return (
-      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
-        <div className="flex flex-wrap gap-2">
-          {navigation.items.map((item, index) => (
-            <button
-              key={index}
-              className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                item.active 
-                  ? 'bg-blue-500 text-white' 
-                  : item.highlighted
-                  ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <span>{item.icon}</span>
-              <span className="text-sm font-medium">{item.name}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   if (!dashboardData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -511,25 +486,36 @@ const MainDashboard = () => {
               </h1>
               <p className="text-gray-600">실시간 학습 데이터 및 성과 분석</p>
             </div>
-            {/* 사용자 선택 드롭다운 */}
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                사용자 선택:
-              </label>
-              <select 
-                value={userId} 
-                onChange={(e) => {
-                  const newUserId = e.target.value;
-                  window.history.pushState({}, '', `?userId=${newUserId}`);
-                  window.location.reload();
-                }}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            <div className="flex gap-4">
+              {/* AI 집중도 분석 버튼 */}
+              <button
+                onClick={() => navigate('/integrated-analysis')}
+                className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-medium shadow-md transition-all duration-200 flex items-center gap-2"
               >
-                <option value="1">사용자 1 (기본)</option>
-                <option value="2">사용자 2 (우수)</option>
-                <option value="3">사용자 3 (저조)</option>
-                <option value="4">사용자 4 (보통)</option>
-              </select>
+                <span>🧠</span>
+                AI 집중도 분석
+              </button>
+              
+              {/* 사용자 선택 드롭다운 */}
+              <div className="bg-white p-4 rounded-lg shadow-md">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  사용자 선택:
+                </label>
+                <select 
+                  value={userId} 
+                  onChange={(e) => {
+                    const newUserId = e.target.value;
+                    window.history.pushState({}, '', `?userId=${newUserId}`);
+                    window.location.reload();
+                  }}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="1">사용자 1 (기본)</option>
+                  <option value="2">사용자 2 (우수)</option>
+                  <option value="3">사용자 3 (저조)</option>
+                  <option value="4">사용자 4 (보통)</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>

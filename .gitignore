@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Data files
+*.zip
+01.원천데이터.zip
+02.라벨링데이터.zip
+시선_AI모델.zip
+시선_sample.zip
+
+# Upload files and folders (User uploads)
+uploads/
+uploaded_files/
+temp_uploads/
+user_uploads/
+
+# Old model versions
+Mobilenet_model.h5
+Mobilenet_model_compatible.h5
+Mobilenet_model_simple.keras
+
+# Development tools
+model_converter.py
+weight_transfer_tool.py
+enhanced_emotion_analyzer.py
+Mobilenet.py
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.tmp
+*.temp
+/tmp/
+/temp/

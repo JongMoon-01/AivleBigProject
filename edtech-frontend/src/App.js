@@ -24,6 +24,7 @@ import NoticePage from "./pages/notice/NoticePage";
 import NoticeDetailPage from "./pages/notice/NoticeDetailPage";
 import NoticeWritePage from "./pages/notice/NoticeWritePage";
 import NoticeEditPage from "./pages/notice/NoticeEditPage";
+import IntegratedAnalysisPage from "./pages/IntegratedAnalysisPage";
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/excel" element={<ExcelViewerPage />} />
             <Route path="/" element={<HomePage />} />
+            <Route path="/dashboard" element={<MainDashboard />} />
 
             {/* 수강생 조회(관리자) */}
             <Route path="/class/:classId/students" element={<StudentsPage />} />
@@ -62,6 +64,9 @@ export default function App() {
             <Route path="/class/:classId/courses/:courseId/content" element={<CourseContentPage />} />
             <Route path="/class/:classId/courses/:courseId/summary" element={<LectureSummaryPage />} />
             <Route path="/class/:classId/courses/:courseId/resources" element={<CourseDetailPage />} />
+            
+            {/* 통합 집중도 분석 페이지 */}
+            <Route path="/integrated-analysis" element={<IntegratedAnalysisPage />} />
           </Routes>
         </main>
         <Footer />
