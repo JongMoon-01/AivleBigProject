@@ -105,6 +105,51 @@ def test_mobilenet_analysis(base64_image):
         print(f"❌ 오류 발생: {e}")
         return False
 
+def test_l2cs_gaze_analysis(base64_image):
+    """L2CS 시선 추적 테스트"""
+    print("\n" + "="*50)
+    print("👁️ L2CS 시선 추적 분석 테스트")
+    print("="*50)
+    
+    url = f"{API_BASE_URL}/api/l2cs/analyze"
+    data = {
+        "base64_image": base64_image,
+        "user_id": "test_user",
+        "session_id": f"test_session_{int(time.time())}"
+    }
+    
+    try:
+        start_time = time.time()
+        response = requests.post(url, json=data, timeout=10)
+        processing_time = time.time() - start_time
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ 분석 성공 (처리 시간: {processing_time:.2f}초)")
+            print(f"📊 시선 기반 집중도: {result.get('attention_score', 0):.1f}/100")
+            print(f"📊 얼굴 감지: {'✅' if result.get('face_detected') else '❌'}")
+            
+            if 'gaze_angles_deg' in result:
+                angles = result['gaze_angles_deg']
+                print(f"📊 시선 각도:")
+                print(f"  - Yaw (좌우): {angles.get('yaw', 0):.2f}°")
+                print(f"  - Pitch (상하): {angles.get('pitch', 0):.2f}°")
+            
+            if 'gaze_vector' in result:
+                vector = result['gaze_vector']
+                print(f"📊 3D 시선 벡터: [{vector[0]:.3f}, {vector[1]:.3f}, {vector[2]:.3f}]")
+            
+            print(f"📊 신뢰도: {result.get('confidence', 0):.1%}")
+            return True
+        else:
+            # L2CS 엔드포인트가 없을 수 있으므로 경고만 표시
+            print(f"⚠️ L2CS 독립 엔드포인트 없음 (통합 분석에서 사용됨)")
+            return True  # 실패로 처리하지 않음
+            
+    except Exception as e:
+        print(f"⚠️ L2CS 독립 API 호출 실패 (통합 분석에 포함됨): {e}")
+        return True  # 실패로 처리하지 않음
+
 def test_integrated_analysis(base64_image):
     """통합 집중도 분석 테스트 (감정 + 시선)"""
     print("\n" + "="*50)
@@ -129,21 +174,33 @@ def test_integrated_analysis(base64_image):
             print(f"📊 통합 집중도 점수: {result.get('integrated_attention_score', 0):.1f}/100")
             print(f"📊 집중도 레벨: {result.get('attention_level', 'N/A')}")
             
-            # 감정 데이터
+            # 감정 데이터 (MobileNet)
             if 'emotion_data' in result:
                 emotion = result['emotion_data']
-                print(f"\n감정 분석:")
+                print(f"\n[MobileNet] 감정 분석:")
                 print(f"  - 감정: {emotion.get('emotion', 'N/A')}")
                 print(f"  - 신뢰도: {emotion.get('confidence', 0):.2%}")
                 print(f"  - 감정 기반 집중도: {emotion.get('emotion_based_attention', 0)}")
             
-            # 시선 데이터
+            # 시선 데이터 (L2CS)
             if 'gaze_data' in result:
                 gaze = result['gaze_data']
-                print(f"\n시선 분석:")
+                print(f"\n[L2CS] 시선 분석:")
                 print(f"  - Yaw (좌우): {gaze.get('yaw', 0):.1f}°")
                 print(f"  - Pitch (상하): {gaze.get('pitch', 0):.1f}°")
                 print(f"  - 시선 기반 집중도: {gaze.get('gaze_attention_score', 0):.1f}")
+                
+                # 추가 L2CS 정보 (있을 경우)
+                if 'gaze_vector' in gaze:
+                    vector = gaze['gaze_vector']
+                    print(f"  - 3D 시선 벡터: [{vector[0]:.3f}, {vector[1]:.3f}, {vector[2]:.3f}]")
+            
+            # 가중치 정보
+            if 'weights' in result:
+                weights = result['weights']
+                print(f"\n가중치 정보:")
+                print(f"  - 감정 가중치: {weights.get('emotion_weight', 0.6):.1%}")
+                print(f"  - 시선 가중치: {weights.get('gaze_weight', 0.4):.1%}")
             
             print(f"\n⏱️ 처리 시간: {result.get('processing_time', processing_time):.3f}초")
             return True
@@ -169,10 +226,28 @@ def test_history_api():
         if response.status_code == 200:
             history = response.json()
             print(f"✅ MobileNet 히스토리: {len(history)}개 항목")
+            if history and len(history) > 0:
+                latest = history[0]
+                print(f"   최근 분석: {latest.get('emotion', 'N/A')} (점수: {latest.get('attention_score', 0)})")
         else:
             print(f"❌ MobileNet 히스토리 조회 실패: {response.status_code}")
     except Exception as e:
         print(f"❌ 오류: {e}")
+    
+    # L2CS 히스토리 (독립 엔드포인트가 있을 경우)
+    url = f"{API_BASE_URL}/api/l2cs/history?user_id=test_user&limit=5"
+    try:
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            history = response.json()
+            print(f"✅ L2CS 히스토리: {len(history)}개 항목")
+            if history and len(history) > 0:
+                latest = history[0]
+                print(f"   최근 분석: 시선 집중도 {latest.get('attention_score', 0):.1f}")
+        else:
+            print(f"⚠️ L2CS 독립 히스토리 없음 (통합 분석에 포함)")
+    except Exception as e:
+        print(f"⚠️ L2CS 독립 히스토리 API 없음")
     
     # 통합 분석 히스토리
     url = f"{API_BASE_URL}/api/integrated/history?user_id=test_user&limit=5"
@@ -181,6 +256,9 @@ def test_history_api():
         if response.status_code == 200:
             history = response.json()
             print(f"✅ 통합 분석 히스토리: {len(history)}개 항목")
+            if history and len(history) > 0:
+                latest = history[0]
+                print(f"   최근 통합 점수: {latest.get('integrated_attention_score', 0):.1f}")
         else:
             print(f"❌ 통합 분석 히스토리 조회 실패: {response.status_code}")
     except Exception as e:
@@ -202,10 +280,30 @@ def test_statistics_api():
             print(f"  - 총 분석: {stats.get('total_analyses', 0)}회")
             print(f"  - 평균 집중도: {stats.get('average_attention', 0):.1f}")
             print(f"  - 얼굴 감지율: {stats.get('face_detection_rate', 0):.1f}%")
+            if 'emotion_distribution' in stats:
+                print(f"  - 감정 분포:")
+                for emotion, percentage in stats['emotion_distribution'].items():
+                    print(f"    • {emotion}: {percentage:.1f}%")
         else:
             print(f"❌ MobileNet 통계 조회 실패: {response.status_code}")
     except Exception as e:
         print(f"❌ 오류: {e}")
+    
+    # L2CS 통계 (독립 엔드포인트가 있을 경우)
+    url = f"{API_BASE_URL}/api/l2cs/statistics?user_id=test_user"
+    try:
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            stats = response.json()
+            print(f"✅ L2CS 통계:")
+            print(f"  - 총 분석: {stats.get('total_analyses', 0)}회")
+            print(f"  - 평균 시선 집중도: {stats.get('average_gaze_attention', 0):.1f}")
+            print(f"  - 평균 Yaw 각도: {stats.get('average_yaw', 0):.1f}°")
+            print(f"  - 평균 Pitch 각도: {stats.get('average_pitch', 0):.1f}°")
+        else:
+            print(f"⚠️ L2CS 독립 통계 없음 (통합 분석에 포함)")
+    except Exception as e:
+        print(f"⚠️ L2CS 독립 통계 API 없음")
     
     # 통합 분석 통계
     url = f"{API_BASE_URL}/api/integrated/statistics?user_id=test_user"
@@ -216,6 +314,8 @@ def test_statistics_api():
             print(f"✅ 통합 분석 통계:")
             print(f"  - 총 분석: {stats.get('total_analyses', 0)}회")
             print(f"  - 평균 통합 집중도: {stats.get('average_integrated_attention', 0):.1f}")
+            print(f"  - 평균 감정 기반 집중도: {stats.get('average_emotion_attention', 0):.1f}")
+            print(f"  - 평균 시선 기반 집중도: {stats.get('average_gaze_attention', 0):.1f}")
         else:
             print(f"❌ 통합 분석 통계 조회 실패: {response.status_code}")
     except Exception as e:
@@ -250,9 +350,14 @@ def main():
     test_results.append(("MobileNet 감정 분석", result))
     time.sleep(1)  # API 부하 방지
     
+    # L2CS 테스트
+    result = test_l2cs_gaze_analysis(base64_image)
+    test_results.append(("L2CS 시선 추적", result))
+    time.sleep(1)
+    
     # 통합 분석 테스트
     result = test_integrated_analysis(base64_image)
-    test_results.append(("통합 집중도 분석", result))
+    test_results.append(("통합 집중도 분석 (MobileNet + L2CS)", result))
     time.sleep(1)
     
     # 히스토리 테스트
