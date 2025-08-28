@@ -42,36 +42,8 @@ chmod +x deploy-azure.sh
 ### 수동 배포 단계
 
 1. **Azure 로그인**
-```bash
-az login
-az acr login --name edtechacr
-```
+라
 
-2. **Docker 이미지 빌드 및 푸시**
-```bash
-# Frontend
-cd edtech_merge/edtech-frontend
-docker build -t edtechacr.azurecr.io/edtech-frontend:v5 .
-docker push edtechacr.azurecr.io/edtech-frontend:v5
-
-# Backend
-cd ../quiz-generator
-docker build -t edtechacr.azurecr.io/quiz-generator:v5 .
-docker push edtechacr.azurecr.io/quiz-generator:v5
-```
-
-3. **AKS 클러스터 연결**
-```bash
-az aks get-credentials --resource-group edtech-rg --name edtech-aks
-```
-
-4. **Kubernetes 리소스 배포**
-```bash
-cd ../../k8s
-kubectl apply -f api-secrets.yaml
-kubectl apply -f chroma-pvc.yaml
-kubectl apply -f chromadb-deployment.yaml
-kubectl apply -f chromadb-service.yaml
 kubectl apply -f quiz-generator-deployment.yaml
 kubectl apply -f quiz-generator-service.yaml
 kubectl apply -f frontend-deployment.yaml
